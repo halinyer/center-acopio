@@ -27,7 +27,7 @@
 
 html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: var(--font); }
 
-.app { position: relative; width: 100vw; height: 100dvh; height: 100vh; overflow: hidden; }
+.app { position: relative; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* MAP = full screen */
 .map-full { position: absolute; inset: 0; z-index: 1; }
