@@ -12,7 +12,7 @@ export const supabase = isDemoMode
 export type LocationRow = {
   id: string;
   name: string;
-  type: 'hospital' | 'centro_acopio';
+  type: 'hospital' | 'centro_acopio' | 'iglesia';
   needs: string;
   address: string;
   lat: number;
@@ -60,6 +60,6 @@ export const HOSPITALS: LocationRow[] = [
 ];
 
 export const DEMO_ACOPIOS: LocationRow[] = [
-  { id: 'a1', name: 'Centro de Acopio Altamira', type: 'centro_acopio', needs: 'Agua, alimentos enlatados, cobijas', address: 'Altamira, Chacao, Caracas', lat: 10.4961, lng: -66.8575, leader_name: 'María Fernández (Cruz Roja)', leader_phone: '+584141234567', photo_url: 'https://images.unsplash.com/photo-1593113565694-c6f140685519?auto=format&fit=crop&q=80&w=400&h=200', updated_at: new Date().toISOString() },
+  { id: 'a1', name: 'Centro de Acopio Altamira', type: 'centro_acopio', needs: 'Agua, alimentos enlatados, cobijas', address: 'Altamira, Chacao, Caracas', lat: 10.4961, lng: -66.8575, leader_name: 'María Fernández', leader_phone: '0412-000-0000', photo_url: 'https://images.unsplash.com/photo-1593113565694-c6f140685519?auto=format&fit=crop&q=80&w=400&h=200', updated_at: new Date().toISOString() },
   { id: 'a2', name: 'Iglesia San Pedro', type: 'centro_acopio', needs: 'Ropa, carpas, colchonetas', address: 'Los Chaguaramos, Caracas', lat: 10.4977, lng: -66.8889, leader_name: 'Padre José', updated_at: new Date().toISOString() },
 ];
