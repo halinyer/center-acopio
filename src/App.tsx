@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { toast } from 'react-hot-toast';
 import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
@@ -106,7 +105,7 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
       const res = await fetch(url);
       if (!res.ok) {
         if (res.status === 429) {
-          toast.error("El servidor de mapas gratuitos está saturado por muchas consultas. Espera unos minutos.", { id: 'osm-rate-limit' });
+          console.warn("El servidor de mapas gratuitos está saturado por muchas consultas.");
         }
         return;
       }
