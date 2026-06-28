@@ -236,7 +236,7 @@ function App() {
 
   const fetchAcopios = useCallback(async () => {
     if (isDemoMode || !supabase) { setAcopios(DEMO_ACOPIOS); return; }
-    const { data, error } = await supabase.from('locations').select('*').eq('type', 'centro_acopio');
+    const { data, error } = await supabase.from('locations').select('*');
     if (error) console.error(error);
     else setAcopios(data || []);
   }, []);
@@ -289,11 +289,10 @@ function App() {
 
   const allLocations = useMemo(() => [...allHospitals, ...acopios], [allHospitals, acopios]);
   const filtered = useMemo(() => {
-    if (filter === 'hospital') return allHospitals.filter(h => h.type === 'hospital');
-    if (filter === 'iglesia') return allHospitals.filter(h => h.type === 'iglesia');
-    if (filter === 'acopio') return acopios;
-    return allLocations;
-  }, [filter, allLocations, acopios, allHospitals]);
+    if (filter === 'all') return allLocations;
+    if (filter === 'acopio') return allLocations.filter(loc => loc.type === 'centro_acopio');
+    return allLocations.filter(loc => loc.type === filter);
+  }, [filter, allLocations]);
 
   const distTo = useCallback((lat: number, lng: number) =>
     userPos ? getDistanceKm(userPos.lat, userPos.lng, lat, lng) : null, [userPos]);
@@ -716,9 +715,9 @@ function App() {
                 </div>
               )}
 
-              {isUnlocked && selectedLoc.type === 'centro_acopio' && (
+              {isUnlocked && acopios.some(a => a.id === selectedLoc.id) && (
                 <div className="admin-actions">
-                  <button className="btn-admin-edit" onClick={() => startEditing(selectedLoc)}>Editar Centro</button>
+                  <button className="btn-admin-edit" onClick={() => startEditing(selectedLoc)}>Editar Punto</button>
                   <button className="btn-admin-delete" onClick={() => handleDelete(selectedLoc.id)}>Eliminar</button>
                 </div>
               )}
