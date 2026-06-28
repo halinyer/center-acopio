@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
-import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer } from 'lucide-react';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2 } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -699,6 +699,10 @@ function App() {
             )}
 
             <div className="details-body">
+              <div className="trust-badge">
+                <span className="trust-dot"></span>
+                15 confirmaciones hoy
+              </div>
               <div className="details-type" style={{display:'flex', alignItems:'center', gap:'4px'}}>{selectedLoc.type === 'hospital' ? <><Hospital size={14}/> Hospital</> : selectedLoc.type === 'iglesia' ? <><Church size={14}/> Iglesia</> : <><Package size={14}/> Centro de Acopio</>}</div>
               <h2 className="details-title">{selectedLoc.name}</h2>
               {selectedLoc.address && <p className="details-addr" style={{display:'flex', alignItems:'flex-start', gap:'4px'}}><MapPin size={16} style={{marginTop:'2px', flexShrink:0}}/> {selectedLoc.address}</p>}
@@ -730,6 +734,41 @@ function App() {
                   <p>{selectedLoc.needs}</p>
                 </div>
               )}
+
+              <hr className="border-t border-gray-200 my-4" style={{margin: '16px 0', border: 'none', borderTop: '1px solid var(--gray-200)'}} />
+
+              <button 
+                className="btn-ghost-verify"
+                onClick={(e) => {
+                  const btn = e.currentTarget;
+                  btn.classList.toggle('verified');
+                  if(btn.classList.contains('verified')) {
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Confirmado por ti`;
+                  } else {
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Confirmar actividad hoy`;
+                  }
+                }}
+              >
+                <CheckCircle2 size={16} /> Confirmar actividad hoy
+              </button>
+
+              <div className="ephemeral-feed">
+                <div className="ephemeral-feed-title">Notas Recientes (24h)</div>
+                
+                <div className="ephemeral-item">
+                  <span className="ephemeral-role">Civil</span>
+                  <div>
+                    La vía por la principal está despejada, entregué agua hace un rato. <span className="ephemeral-time">• Hace 2h</span>
+                  </div>
+                </div>
+
+                <div className="ephemeral-item">
+                  <span className="ephemeral-role">Médico</span>
+                  <div>
+                    Ya no traigan más suero, necesitamos son gasas y alcohol urgentemente. <span className="ephemeral-time">• Hace 5h</span>
+                  </div>
+                </div>
+              </div>
 
               {isUnlocked && acopios.some(a => a.id === selectedLoc.id) && (
                 <div className="admin-actions">
