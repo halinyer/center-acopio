@@ -578,6 +578,8 @@ function App() {
                 </div>
               )}
               <button className="details-go-btn" onClick={() => window.open(gmapsUrl(userPos?.lat ?? null, userPos?.lng ?? null, selectedLoc.lat, selectedLoc.lng), '_blank')}>🗺️ Google Maps</button>
+              
+              <div className="powered-by">Powered by <strong>signalNote</strong></div>
             </div>
           </div>
         </div>
