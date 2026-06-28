@@ -487,8 +487,8 @@ function App() {
       <div className={`map-full ${placingMode && !showForm ? 'placing-cursor' : ''}`}>
         <MapContainer center={[10.4806, -66.9036]} zoom={13} zoomControl={false} style={{ height: '100%', width: '100%' }}>
           <TileLayer 
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
-            attribution='&copy; OSM'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" 
+            attribution='&copy; OSM &copy; CARTO'
             detectRetina={true}
           />
           <MapCenterer flyTo={mapFlyTo} />
