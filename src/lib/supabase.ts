@@ -81,21 +81,61 @@ export const DEMO_ACOPIOS: LocationRow[] = [
 ];
 
 export async function searchLocation(query: string): Promise<Array<{lat: number, lon: number, display_name: string, type: string}>> {
-  try {
-    const params = new URLSearchParams({
-      q: query,
-      format: 'json',
-      countrycodes: 'VE',
-      limit: '8',
-      dedupe: '1',
-      addressdetails: '1',
-      viewbox: '-73.3,-0.6,-59.8,12.5',
-      bounded: '1',
+  const fullQuery = query.toLowerCase().includes('venezuela') ? query : `${query}, Venezuela`;
+
+  // Motor 1: Photon (Komoot) — fuzzy matching excelente, ideal para autocompletado
+  const photonSearch = async (): Promise<Array<{lat: number, lon: number, display_name: string, type: string}>> => {
+    try {
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(fullQuery)}&lang=es&limit=6&lat=8.0&lon=-66.0&zoom=6`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return (data.features || [])
+        .filter((f: any) => {
+          const cc = f.properties?.country;
+          return cc === 'Venezuela' || cc === 'República Bolivariana de Venezuela';
+        })
+        .map((f: any) => {
+          const p = f.properties || {};
+          const parts = [p.name, p.street, p.city || p.county, p.state].filter(Boolean);
+          return {
+            lat: f.geometry.coordinates[1],
+            lon: f.geometry.coordinates[0],
+            display_name: parts.join(', '),
+            type: p.osm_value || p.type || '',
+          };
+        });
+    } catch { return []; }
+  };
+
+  // Motor 2: Nominatim — más completo en direcciones formales
+  const nominatimSearch = async (): Promise<Array<{lat: number, lon: number, display_name: string, type: string}>> => {
+    try {
+      const params = new URLSearchParams({
+        q: fullQuery,
+        format: 'json',
+        countrycodes: 'VE',
+        limit: '5',
+        dedupe: '1',
+        addressdetails: '1',
+      });
+      const url = `https://nominatim.openstreetmap.org/search?${params}`;
+      const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+      return await res.json();
+    } catch { return []; }
+  };
+
+  // Ejecutar ambos motores en paralelo
+  const [photonResults, nominatimResults] = await Promise.all([photonSearch(), nominatimSearch()]);
+
+  // Combinar y deduplicar por proximidad (si dos resultados están a menos de 50m, son iguales)
+  const combined = [...photonResults];
+  for (const nr of nominatimResults) {
+    const isDupe = combined.some(cr => {
+      const dist = Math.abs(Number(cr.lat) - Number(nr.lat)) + Math.abs(Number(cr.lon) - Number(nr.lon));
+      return dist < 0.0005;
     });
-    const url = `https://nominatim.openstreetmap.org/search?${params}`;
-    const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
-    return await res.json();
-  } catch {
-    return [];
+    if (!isDupe) combined.push(nr);
   }
+
+  return combined.slice(0, 10);
 }
