@@ -202,6 +202,7 @@ function App() {
   
   // Form fields
   const [formName, setFormName] = useState('');
+  const [formType, setFormType] = useState<'centro_acopio' | 'hospital' | 'iglesia'>('centro_acopio');
   const [formNeeds, setFormNeeds] = useState('');
   const [formLeader, setFormLeader] = useState('');
   const [formPhone, setFormPhone] = useState('');
@@ -337,7 +338,7 @@ function App() {
   const startPlacing = () => { setShowLocationChooser(true); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setPlacingMode(false); setEditingId(null); };
   
   const cancelPlacing = () => { 
-    setPlacingMode(false); setShowLocationChooser(false); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setFormName(''); setFormNeeds(''); setFormLeader(''); setFormPhone(''); setEditingId(null);
+    setPlacingMode(false); setShowLocationChooser(false); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setFormName(''); setFormType('centro_acopio'); setFormNeeds(''); setFormLeader(''); setFormPhone(''); setEditingId(null);
   };
 
   const handleChooseMap = () => {
@@ -390,7 +391,7 @@ function App() {
     setSubmitting(true);
     
     const rowData = {
-      name: formName, type: 'centro_acopio' as const, needs: formNeeds, address: placedAddress, 
+      name: formName, type: formType, needs: formNeeds, address: placedAddress, 
       leader_name: formLeader, leader_phone: formPhone,
       lat: placedPos?.lat || 0, lng: placedPos?.lng || 0,
       updated_at: new Date().toISOString(),
@@ -425,6 +426,7 @@ function App() {
   const startEditing = (loc: LocationRow) => {
     setEditingId(loc.id);
     setFormName(loc.name);
+    setFormType(loc.type as any);
     setFormNeeds(loc.needs || '');
     setFormLeader(loc.leader_name || '');
     setFormPhone(loc.leader_phone || '');
@@ -779,8 +781,17 @@ function App() {
               </div>
 
               <div className="field">
-                <label>Nombre del lugar *</label>
+                <label style={{display:'flex', alignItems:'center', gap:'4px'}}><MapPin size={14} /> Nombre del Lugar</label>
                 <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Ej: Iglesia San José..." required />
+              </div>
+
+              <div className="field">
+                <label style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Tipo de Lugar</label>
+                <select value={formType} onChange={(e) => setFormType(e.target.value as any)}>
+                  <option value="centro_acopio">Centro de Acopio</option>
+                  <option value="hospital">Hospital / Clínica</option>
+                  <option value="iglesia">Iglesia / Centro Religioso</option>
+                </select>
               </div>
               
               <div className="field-row">
