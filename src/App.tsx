@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Package, Phone, MessageCircle, Map as MapIcon, Search, User, Pointer } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -483,19 +484,15 @@ function App() {
       {!placingMode && (
         <div className="top-bar">
           <div className="brand">
-            <div className="brand-icon">📦</div>
+            <div className="brand-icon"><Package size={24} color="white" /></div>
             <div className="brand-text">Acopio<span>Venezuela</span></div>
           </div>
           <div className="top-actions">
-            {!isUnlocked && (
-              <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes">🔒</button>
-            )}
-            {isUnlocked && (
-              <button className="btn-pill btn-add-top" onClick={startPlacing}>+ <span>Agregar</span></button>
-            )}
-            <button className="btn-pill" onClick={() => setShowList(true)}>📋 <span>Ver lista</span></button>
-            <button className="btn-circle" onClick={handleLocate} title="Mi ubicación">📍</button>
-            <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona">❓</button>
+            {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
+            {isUnlocked && <button className="btn-pill btn-add-top" onClick={startPlacing}><Plus size={18} /> <span>Agregar</span></button>}
+            <button className="btn-pill" onClick={() => setShowList(true)}><ListIcon size={18} /> <span>Ver lista</span></button>
+            <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
+            <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
           </div>
         </div>
       )}
@@ -505,7 +502,7 @@ function App() {
           <div className="chip-dot" />
           <div className="chip-info">
             <div className="chip-name">{nearest.location.name}</div>
-            <div className="chip-dist">📦 Más cercano · {fmtDist(nearest.distance)}</div>
+            <div className="chip-dist" style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Más cercano · {fmtDist(nearest.distance)}</div>
           </div>
         </div>
       )}
@@ -513,10 +510,10 @@ function App() {
       {!placingMode && (
         <div className="bottom-bar-wrapper">
           <div className="bottom-bar-scroll">
-            <button className={`filter-pill ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>🗺️ Todos</button>
-            <button className={`filter-pill ${filter === 'hospital' ? 'active' : ''}`} onClick={() => setFilter('hospital')}>🏥 Hospitales</button>
-            <button className={`filter-pill ${filter === 'iglesia' ? 'active' : ''}`} onClick={() => setFilter('iglesia')}>⛪ Iglesias</button>
-            <button className={`filter-pill ${filter === 'acopio' ? 'active' : ''}`} onClick={() => setFilter('acopio')}>📦 Acopio</button>
+            <button className={`filter-pill ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}><MapIcon size={16}/> Todos</button>
+            <button className={`filter-pill ${filter === 'hospital' ? 'active' : ''}`} onClick={() => setFilter('hospital')}><Hospital size={16}/> Hospitales</button>
+            <button className={`filter-pill ${filter === 'iglesia' ? 'active' : ''}`} onClick={() => setFilter('iglesia')}><Hospital size={16}/> Iglesias</button>
+            <button className={`filter-pill ${filter === 'acopio' ? 'active' : ''}`} onClick={() => setFilter('acopio')}><Package size={16}/> Acopio</button>
           </div>
         </div>
       )}
@@ -525,7 +522,7 @@ function App() {
       {showAuthModal && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}>
           <div className="auth-card">
-            <h2>🔒 Acceso a Líderes</h2>
+            <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><Lock size={20} /> Acceso a Líderes</h2>
             <p>Ingresa el código de acceso para poder registrar centros de acopio.</p>
             <form onSubmit={handleAuthSubmit}>
               <input 
@@ -550,24 +547,24 @@ function App() {
           <div className="modal-sheet help-sheet">
             <div className="list-handle" />
             <div className="modal-header">
-              <h2>❓ ¿Cómo funciona?</h2>
+              <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><HelpCircle size={20} /> ¿Cómo funciona?</h2>
               <button className="modal-close" onClick={() => setShowHelpModal(false)}>✕</button>
             </div>
             <div className="help-body">
               <div className="help-step">
-                <span className="help-step-icon">🏥 / ⛪</span>
+                <span className="help-step-icon"><Hospital size={16} /> / <Hospital size={16} /></span>
                 <p><strong>Hospitales e Iglesias:</strong> Se cargan automáticamente del mapa oficial libre de Venezuela al mover la pantalla. No tienes que agregarlos.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon">📦</span>
+                <span className="help-step-icon"><Package size={16} /></span>
                 <p><strong>Centros de Acopio (Rojos):</strong> Son los puntos de ayuda activos. Toca cualquiera para ver qué insumos necesitan y su teléfono.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon">📞 / 💬</span>
+                <span className="help-step-icon"><Phone size={16} /> / <MessageCircle size={16} /></span>
                 <p><strong>Contacto Directo:</strong> Puedes llamar al líder del centro o enviarle un WhatsApp directo en 1 clic para coordinar tu entrega.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon">🔒</span>
+                <span className="help-step-icon"><Lock size={16} /></span>
                 <p><strong>Agregar Puntos:</strong> Exclusivo para médicos, sacerdotes y líderes con código de autorización. Toca el candado e ingresa el código.</p>
               </div>
               <button className="help-close-btn" onClick={() => setShowHelpModal(false)}>Entendido</button>
@@ -584,7 +581,7 @@ function App() {
           <div className="list-sheet">
             <div className="list-handle" />
             <div className="list-header">
-              <h2>📋 {filter === 'all' ? 'Todos los puntos' : filter === 'hospital' ? 'Hospitales' : filter === 'iglesia' ? 'Iglesias' : 'Centros de Acopio'} cercanos</h2>
+              <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><ListIcon size={20} /> {filter === 'all' ? 'Todos los puntos' : filter === 'hospital' ? 'Hospitales' : filter === 'iglesia' ? 'Iglesias' : 'Centros de Acopio'} cercanos</h2>
               <button className="list-close" onClick={() => setShowList(false)}>✕</button>
             </div>
             
@@ -592,7 +589,7 @@ function App() {
               <input 
                 type="text" 
                 className="list-search-input" 
-                placeholder="🔍 Buscar por nombre o dirección..." 
+                placeholder="Buscar por nombre o dirección..." 
                 value={listSearch}
                 onChange={(e) => setListSearch(e.target.value)}
               />
@@ -605,12 +602,12 @@ function App() {
                 return (
                   <div key={loc.id} className="list-item" onClick={() => openDetails(loc)}>
                     <div className={`list-item-icon ${loc.type}`}>
-                      {loc.type === 'hospital' ? '🏥' : loc.type === 'iglesia' ? '⛪' : '📦'}
+                      {loc.type === 'hospital' ? <Hospital size={16} color="white" /> : loc.type === 'iglesia' ? <Hospital size={16} color="white" /> : <Package size={16} color="white" />}
                     </div>
                     <div className="list-item-info">
                       <div className="list-item-name">{loc.name}</div>
                       <div className="list-item-addr">{loc.address || (loc.type === 'hospital' ? 'Hospital' : loc.type === 'iglesia' ? 'Iglesia' : 'Centro de Acopio')}</div>
-                      {dist !== null && <div className="list-item-dist">📏 {fmtDist(dist)}</div>}
+                      {dist !== null && <div className="list-item-dist">{fmtDist(dist)}</div>}
                     </div>
                     <button className="list-item-go">Info</button>
                   </div>
@@ -640,25 +637,25 @@ function App() {
             )}
 
             <div className="details-body">
-              <div className="details-type">{selectedLoc.type === 'hospital' ? '🏥 Hospital' : selectedLoc.type === 'iglesia' ? '⛪ Iglesia' : '📦 Centro de Acopio'}</div>
+              <div className="details-type" style={{display:'flex', alignItems:'center', gap:'4px'}}>{selectedLoc.type === 'hospital' ? <><Hospital size={14}/> Hospital</> : selectedLoc.type === 'iglesia' ? <><Hospital size={14}/> Iglesia</> : <><Package size={14}/> Centro de Acopio</>}</div>
               <h2 className="details-title">{selectedLoc.name}</h2>
-              {selectedLoc.address && <p className="details-addr">📍 {selectedLoc.address}</p>}
+              {selectedLoc.address && <p className="details-addr" style={{display:'flex', alignItems:'flex-start', gap:'4px'}}><MapPin size={16} style={{marginTop:'2px', flexShrink:0}}/> {selectedLoc.address}</p>}
               {distTo(selectedLoc.lat, selectedLoc.lng) !== null && (
-                <div className="details-dist">📏 A {fmtDist(distTo(selectedLoc.lat, selectedLoc.lng))} de ti</div>
+                <div className="details-dist">A {fmtDist(distTo(selectedLoc.lat, selectedLoc.lng))} de ti</div>
               )}
 
               {/* Leader Info & Phone Buttons */}
               {(selectedLoc.leader_name || selectedLoc.leader_phone) && (
                 <div className="details-leader">
-                  <strong>👤 Contacto / Líder:</strong> {selectedLoc.leader_name || 'Sin nombre'}
+                  <strong style={{display:'flex', alignItems:'center', gap:'4px'}}><User size={16} /> Contacto / Líder:</strong> {selectedLoc.leader_name || 'Sin nombre'}
                   
                   {selectedLoc.leader_phone && (
                     <div className="contact-buttons">
                       <button className="btn-call" onClick={() => window.open(`tel:${selectedLoc.leader_phone}`)}>
-                        📞 Llamar
+                        <Phone size={16} /> Llamar
                       </button>
                       <button className="btn-wa" onClick={() => window.open(formatWaLink(selectedLoc.leader_phone!), '_blank')}>
-                        💬 WhatsApp
+                        <MessageCircle size={16} /> WhatsApp
                       </button>
                     </div>
                   )}
@@ -667,7 +664,7 @@ function App() {
 
               {selectedLoc.needs && (
                 <div className="details-needs">
-                  <strong>📝 ¿Qué se necesita?</strong>
+                  <strong style={{display:'flex', alignItems:'center', gap:'4px'}}><ListIcon size={16} /> ¿Qué se necesita?</strong>
                   <p>{selectedLoc.needs}</p>
                 </div>
               )}
@@ -680,7 +677,7 @@ function App() {
               )}
 
               <button className="details-go-btn" onClick={() => window.open(gmapsUrl(userPos?.lat ?? null, userPos?.lng ?? null, selectedLoc.lat, selectedLoc.lng), '_blank')}>
-                🗺️ Abrir ruta en Google Maps
+                <MapIcon size={18} /> Abrir ruta en Google Maps
               </button>
             </div>
           </div>
@@ -698,7 +695,7 @@ function App() {
             </div>
             <div className="chooser-body">
               <button className="chooser-btn gps" onClick={handleChooseGPS}>
-                <span className="chooser-icon">📍</span>
+                <span className="chooser-icon"><MapPin size={24} /></span>
                 <div className="chooser-text">
                   <strong>Usar mi ubicación actual</strong>
                   <span>Es más rápido y preciso usando el GPS</span>
@@ -706,7 +703,7 @@ function App() {
               </button>
               <div className="chooser-or">O</div>
               <button className="chooser-btn map" onClick={handleChooseMap}>
-                <span className="chooser-icon">👆</span>
+                <span className="chooser-icon"><Pointer size={24} /></span>
                 <div className="chooser-text">
                   <strong>Seleccionar en el mapa a mano</strong>
                   <span>Toca el punto exacto en el mapa tú mismo</span>
@@ -723,12 +720,12 @@ function App() {
           <div className="modal-sheet">
             <div className="list-handle" />
             <div className="modal-header">
-              <h2>{editingId ? '✏️ Editar Acopio' : '📦 Nuevo Centro'}</h2>
+              <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}>{editingId ? <><Hospital size={20} /> Editar Acopio</> : <><Package size={20} /> Nuevo Centro</>}</h2>
               <button className="modal-close" onClick={cancelPlacing}>✕</button>
             </div>
             <form className="modal-body" onSubmit={handleSubmit}>
               <div className="selected-location">
-                <span className="selected-location-icon">📍</span>
+                <span className="selected-location-icon"><MapPin size={24} color="white" /></span>
                 <div>
                   <div className="selected-location-label">Ubicación seleccionada</div>
                   <div className="selected-location-addr">{placedAddress || 'Obteniendo dirección...'}</div>
@@ -743,22 +740,22 @@ function App() {
               
               <div className="field-row">
                 <div className="field" style={{ flex: 1 }}>
-                  <label>👤 Nombre Contacto</label>
+                  <label style={{display:'flex', alignItems:'center', gap:'4px'}}><User size={14} /> Nombre Contacto</label>
                   <input value={formLeader} onChange={(e) => setFormLeader(e.target.value)} placeholder="Ej: María Pérez" />
                 </div>
                 <div className="field" style={{ flex: 1 }}>
-                  <label>📞 Teléfono</label>
+                  <label style={{display:'flex', alignItems:'center', gap:'4px'}}><Phone size={14} /> Teléfono</label>
                   <input type="tel" value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="Ej: 0414..." />
                 </div>
               </div>
 
               <div className="field">
-                <label>📝 ¿Qué se necesita? (Opcional)</label>
+                <label style={{display:'flex', alignItems:'center', gap:'4px'}}><ListIcon size={14} /> ¿Qué se necesita? (Opcional)</label>
                 <textarea value={formNeeds} onChange={(e) => setFormNeeds(e.target.value)} placeholder="Agua, comida, medicinas, ropa..." />
               </div>
 
               <button type="submit" className="btn-submit" disabled={submitting || !formName}>
-                {submitting ? '⏳ Guardando...' : (editingId ? '💾 Guardar Cambios' : '✅ Confirmar y agregar')}
+                {submitting ? 'Guardando...' : (editingId ? 'Guardar Cambios' : 'Confirmar y agregar')}
               </button>
             </form>
           </div>
