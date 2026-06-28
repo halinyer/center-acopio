@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
-import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Package, Phone, MessageCircle, Map as MapIcon, Search, User, Pointer } from 'lucide-react';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
