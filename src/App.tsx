@@ -294,6 +294,11 @@ function App() {
     fetchAcopios();
     fetchSocialData();
     
+    // Polling silencioso para Validations/Feed cada 2 minutos
+    const interval = setInterval(() => {
+      fetchSocialData();
+    }, 120_000);
+
     // Configurar suscripción en tiempo real a Supabase
     let channel: any;
     let socialChannel: any;
@@ -327,21 +332,9 @@ function App() {
           if (pos && acs.length > 0) {
             const loc = acs.find(a => a.id === payload.new.location_id);
             if (loc && getDistanceKm(pos.lat, pos.lng, loc.lat, loc.lng) <= 20) {
-              showToast(`Nuevo reporte en ${loc.name}`, `${payload.new.role} reportó algo nuevo.`, loc.id);
-            }
-          }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'validations' }, (payload) => {
-          fetchSocialData();
-          if (payload.eventType === 'INSERT') {
-            const pos = userPosRef.current;
-            const acs = acopiosRef.current;
-            if (pos && acs.length > 0) {
-              const loc = acs.find(a => a.id === payload.new.location_id);
-              if (loc && getDistanceKm(pos.lat, pos.lng, loc.lat, loc.lng) <= 20) {
-                if (payload.new.device_id !== deviceId) {
-                  showToast(`Actividad en ${loc.name}`, `Alguien acaba de confirmar que este centro sigue activo.`, loc.id);
-                }
+              // Filtro de ruido: Solo alertar por roles críticos (Médico/Rescatista)
+              if (payload.new.role === 'Médico' || payload.new.role === 'Rescatista') {
+                showToast(`⚠️ ${payload.new.role} en ${loc.name}`, `${payload.new.content}`, loc.id);
               }
             }
           }
@@ -373,10 +366,11 @@ function App() {
       setLocating(false);
     }
 
-      return () => {
-        if (channel) supabase?.removeChannel(channel);
-        if (socialChannel) supabase?.removeChannel(socialChannel);
-      };
+    return () => {
+      clearInterval(interval);
+      if (channel) supabase?.removeChannel(channel);
+      if (socialChannel) supabase?.removeChannel(socialChannel);
+    };
   }, [fetchAcopios, fetchSocialData, deviceId]);
 
   const allLocations = useMemo(() => acopios, [acopios]);
