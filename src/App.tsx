@@ -56,6 +56,16 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number
   return null;
 }
 
+function MapCenterer({ flyTo }: { flyTo: { lat: number, lng: number } | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (flyTo) {
+      map.flyTo([flyTo.lat, flyTo.lng], 16, { animate: true });
+    }
+  }, [flyTo, map]);
+  return null;
+}
+
 function gmapsUrl(userLat: number | null, userLng: number | null, lat: number, lng: number) {
   if (userLat !== null && userLng !== null)
     return `https://www.google.com/maps/dir/${userLat},${userLng}/${lat},${lng}`;
@@ -180,6 +190,7 @@ function App() {
   const [showList, setShowList] = useState(false);
   const [listSearch, setListSearch] = useState('');
   const [selectedLoc, setSelectedLoc] = useState<LocationRow | null>(null); // Details modal
+  const [mapFlyTo, setMapFlyTo] = useState<{lat: number, lng: number} | null>(null);
 
   // Placing mode
   const [showLocationChooser, setShowLocationChooser] = useState(false);
@@ -202,6 +213,12 @@ function App() {
       setIsUnlocked(true);
     }
   }, []);
+
+  const openDetails = (loc: LocationRow) => {
+    setShowList(false);
+    setSelectedLoc(loc);
+    setMapFlyTo({ lat: loc.lat, lng: loc.lng });
+  };
 
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -440,7 +457,15 @@ function App() {
 
   // WhatsApp formatter
   const formatWaLink = (phone: string) => {
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    let cleanPhone = phone.replace(/[^0-9+]/g, '');
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '58' + cleanPhone.substring(1);
+    } else if (!cleanPhone.startsWith('58') && !cleanPhone.startsWith('+58')) {
+      // Assume it's a Venezuelan number if it's 10 digits
+      if (cleanPhone.length === 10) cleanPhone = '58' + cleanPhone;
+    }
+    // Remove +
+    cleanPhone = cleanPhone.replace('+', '');
     return `https://wa.me/${cleanPhone}`;
   };
 
@@ -468,6 +493,7 @@ function App() {
             attribution='&copy; OSM'
             detectRetina={true}
           />
+          <MapCenterer flyTo={mapFlyTo} />
           {flyTarget && <FlyTo lat={flyTarget.lat} lng={flyTarget.lng} zoom={flyTarget.zoom} />}
           {placingMode && !showForm && <MapClickHandler onMapClick={handleMapClick} />}
           <DynamicHospitals setOsmHospitals={setOsmHospitals} />
