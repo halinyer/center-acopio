@@ -163,7 +163,6 @@ function App() {
   const [formNeeds, setFormNeeds] = useState('');
   const [formLeader, setFormLeader] = useState('');
   const [formPhone, setFormPhone] = useState('');
-  const [formPhoto, setFormPhoto] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -201,7 +200,7 @@ function App() {
     
     const rowData = {
       name: formName,
-      type: 'centro_acopio',
+      type: 'centro_acopio' as const,
       needs: formNeeds,
       address: placedAddress,
       lat: placedPos?.lat || 0,
@@ -314,9 +313,6 @@ function App() {
     return allLocations;
   }, [filter, allLocations, acopios, allHospitals]);
 
-  const distTo = useCallback((lat: number, lng: number) =>
-    userPos ? getDistanceKm(userPos.lat, userPos.lng, lat, lng) : null, [userPos]);
-
   const sortedByDist = useMemo(() => {
     if (!userPos) return filtered;
     return [...filtered].sort((a, b) =>
@@ -357,7 +353,7 @@ function App() {
   const startPlacing = () => { setShowLocationChooser(true); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setPlacingMode(false); setEditingId(null); };
   
   const cancelPlacing = () => { 
-    setPlacingMode(false); setShowLocationChooser(false); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setFormName(''); setFormNeeds(''); setFormLeader(''); setFormPhone(''); setFormPhoto(null); setEditingId(null);
+    setPlacingMode(false); setShowLocationChooser(false); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setFormName(''); setFormNeeds(''); setFormLeader(''); setFormPhone(''); setEditingId(null);
   };
 
   const handleChooseMap = () => {
@@ -394,12 +390,6 @@ function App() {
     setShowForm(true);
     const addr = await reverseGeocode(lat, lng);
     setPlacedAddress(addr || `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-  };
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormPhoto(e.target.files[0]);
-    }
   };
 
   const fmtDist = (d: number | null) => {
