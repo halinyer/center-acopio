@@ -491,7 +491,7 @@ function App() {
               <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes">🔒</button>
             )}
             {isUnlocked && (
-              <button className="btn-pill btn-add-top" onClick={startPlacing}>➕ <span>Agregar</span></button>
+              <button className="btn-pill btn-add-top" onClick={startPlacing}>+ <span>Agregar</span></button>
             )}
             <button className="btn-pill" onClick={() => setShowList(true)}>📋 <span>Ver lista</span></button>
             <button className="btn-circle" onClick={handleLocate} title="Mi ubicación">📍</button>
@@ -627,7 +627,6 @@ function App() {
       {selectedLoc && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setSelectedLoc(null); }}>
           <div className="modal-sheet details-sheet">
-            <div className="list-handle" />
             
             {/* Header Image */}
             {selectedLoc.photo_url ? (
@@ -675,8 +674,8 @@ function App() {
 
               {isUnlocked && selectedLoc.type === 'centro_acopio' && (
                 <div className="admin-actions">
-                  <button className="btn-admin-edit" onClick={() => startEditing(selectedLoc)}>✏️ Editar</button>
-                  <button className="btn-admin-delete" onClick={() => handleDelete(selectedLoc.id)}>🗑️ Borrar</button>
+                  <button className="btn-admin-edit" onClick={() => startEditing(selectedLoc)}>Editar Centro</button>
+                  <button className="btn-admin-delete" onClick={() => handleDelete(selectedLoc.id)}>Eliminar</button>
                 </div>
               )}
 
