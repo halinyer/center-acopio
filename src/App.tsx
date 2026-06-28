@@ -80,7 +80,7 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
 
   const fetchOsm = useCallback(async () => {
     const zoom = map.getZoom();
-    if (zoom < 12) return; // Evitar áreas gigantescas que tumban la API
+    if (zoom < 10) return; // Permitir zoom desde más lejos
     const bounds = map.getBounds();
     const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
     
@@ -457,7 +457,7 @@ function App() {
       )}
 
       <div className={`map-full ${placingMode && !showForm ? 'placing-cursor' : ''}`}>
-        <MapContainer center={[10.4806, -66.9036]} zoom={8} zoomControl={false} style={{ height: '100%', width: '100%' }}>
+        <MapContainer center={[10.4806, -66.9036]} zoom={13} zoomControl={false} style={{ height: '100%', width: '100%' }}>
           <TileLayer 
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
             attribution='&copy; OSM'
