@@ -103,7 +103,12 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
     
     try {
       const res = await fetch(url);
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (res.status === 429) {
+          toast.error("El servidor de mapas gratuitos está saturado por muchas consultas. Espera unos minutos.", { id: 'osm-rate-limit' });
+        }
+        return;
+      }
       const data = await res.json();
       
       const newHospitals: LocationRow[] = data.elements.map((el: any) => {
@@ -117,7 +122,7 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
           type = 'iglesia';
           if (!el.tags?.name) name = 'Iglesia / Parroquia';
         } else if (!el.tags?.name) {
-          name = el.tags?.amenity === 'clinic' ? 'Clínica' : 'Hospital';
+          name = el.tags?.amenity === 'clinic' || el.tags?.healthcare === 'clinic' ? 'Clínica' : 'Hospital';
         }
         
         return {
@@ -132,7 +137,6 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
         };
       });
 
-      // Guardamos los lugares evitando duplicados por ID
       setOsmHospitals(prev => {
         const map = new Map(prev.map(h => [h.id, h]));
         newHospitals.forEach(h => map.set(h.id, h));
@@ -140,6 +144,7 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
       });
     } catch (err) {
       console.error('Error cargando datos OSM:', err);
+      // Solo mostrar un toast genérico si no se ha mostrado ya
     }
   }, [map, setOsmHospitals]);
 
