@@ -613,20 +613,12 @@ function App() {
           {filtered.map((loc) => {
             const isNearest = nearest?.location.id === loc.id;
             return (
-              <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={makeIcon(loc.type, isNearest)}>
-                <Popup>
-                  <div className="popup-card">
-                    <div className="popup-body">
-                      <div className="popup-name">{loc.type === 'hospital' ? '🏥' : loc.type === 'iglesia' ? '⛪' : '📦'} {loc.name}</div>
-                      <div className="popup-type">{loc.type === 'hospital' ? 'Hospital' : loc.type === 'iglesia' ? 'Iglesia' : 'Centro de Acopio'}</div>
-                      {loc.address && <div className="popup-addr">📍 {loc.address}</div>}
-                    </div>
-                    <button className="popup-go" onClick={() => openDetails(loc)}>
-                      Ver más info
-                    </button>
-                  </div>
-                </Popup>
-              </Marker>
+              <Marker 
+                key={loc.id} 
+                position={[loc.lat, loc.lng]} 
+                icon={makeIcon(loc.type, isNearest)}
+                eventHandlers={{ click: () => openDetails(loc) }}
+              />
             );
           })}
         </MapContainer>
@@ -806,6 +798,14 @@ function App() {
               </div>
               <div className="details-type" style={{display:'flex', alignItems:'center', gap:'4px'}}>{selectedLoc.type === 'hospital' ? <><Hospital size={14}/> Hospital</> : selectedLoc.type === 'iglesia' ? <><Church size={14}/> Iglesia</> : <><Package size={14}/> Centro de Acopio</>}</div>
               <h2 className="details-title">{selectedLoc.name}</h2>
+              
+              {isUnlocked && acopios.some(a => a.id === selectedLoc.id) && (
+                <div className="admin-actions">
+                  <button className="btn-admin-edit" onClick={() => startEditing(selectedLoc)}>Editar Punto</button>
+                  <button className="btn-admin-delete" onClick={() => handleDelete(selectedLoc.id)}>Deshabilitar</button>
+                </div>
+              )}
+
               {selectedLoc.address && <p className="details-addr" style={{display:'flex', alignItems:'flex-start', gap:'4px'}}><MapPin size={16} style={{marginTop:'2px', flexShrink:0}}/> {selectedLoc.address}</p>}
               {distTo(selectedLoc.lat, selectedLoc.lng) !== null && (
                 <div className="details-dist">A {fmtDist(distTo(selectedLoc.lat, selectedLoc.lng))} de ti</div>
@@ -933,13 +933,6 @@ function App() {
                   </div>
                 ))}
               </div>
-
-              {isUnlocked && acopios.some(a => a.id === selectedLoc.id) && (
-                <div className="admin-actions">
-                  <button className="btn-admin-edit" onClick={() => startEditing(selectedLoc)}>Editar Punto</button>
-                  <button className="btn-admin-delete" onClick={() => handleDelete(selectedLoc.id)}>Deshabilitar</button>
-                </div>
-              )}
             </div>
 
             <div className="details-footer">
