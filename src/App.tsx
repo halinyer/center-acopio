@@ -246,7 +246,7 @@ function App() {
 
   const fetchAcopios = useCallback(async () => {
     if (isDemoMode || !supabase) { setAcopios(DEMO_ACOPIOS); return; }
-    const { data, error } = await supabase.from('locations').select('*');
+    const { data, error } = await supabase.from('locations').select('*').eq('is_active', true);
     if (error) console.error(error);
     else setAcopios(data || []);
   }, []);
