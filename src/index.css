@@ -1,5 +1,5 @@
 /* ========================================
-   SOS VENEZUELA — CLEAN EMERGENCY MAP
+   SOS VENEZUELA â€” CLEAN EMERGENCY MAP
    UX-first: mapa limpio, nada invasivo
    ======================================== */
 
@@ -105,7 +105,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 }
 .btn-pill.btn-add-top:active { background: #b91c1c; }
 
-/* ========== NEAREST CHIP — discreto, arriba del bottom bar ========== */
+/* ========== NEAREST CHIP â€” discreto, arriba del bottom bar ========== */
 .nearest-chip {
   position: absolute; bottom: 56px; left: 12px; right: 12px; z-index: 1000;
   display: flex; align-items: center; gap: 10px;
@@ -146,7 +146,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 }
 .chip-list:active { background: var(--gray-200); }
 
-/* ========== LIST PANEL — bottom sheet con todos los centros ========== */
+/* ========== LIST PANEL â€” bottom sheet con todos los centros ========== */
 .list-overlay {
   position: absolute; inset: 0; z-index: 2000;
   background: rgba(0,0,0,0.35);
@@ -418,7 +418,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 
 .details-leader {
   padding: 12px; background: var(--gray-50); border: 1px solid var(--gray-200);
-  border-radius: var(--radius-sm); font-size: 14px; color: var(--gray-800); margin-bottom: 12px;
+  border-radius: var(--radius-sm); font-size: 14px; color: var(--gray-900); margin-bottom: 12px;
 }
 .details-needs {
   padding: 12px; background: var(--green-light); border: 1px solid #bbf7d0;
@@ -478,7 +478,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   display: flex; gap: 10px; margin-bottom: 20px;
 }
 .btn-admin-edit {
-  flex: 1; padding: 10px; background: white; color: var(--gray-800); border: 1.5px solid var(--gray-200);
+  flex: 1; padding: 10px; background: white; color: var(--gray-900); border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;
   transition: background 0.2s;
@@ -565,7 +565,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
 }
 
-/* EL BOTÓN FANTASMA DE CONFIRMACIÓN */
+/* EL BOTÃ“N FANTASMA DE CONFIRMACIÃ“N */
 .btn-ghost-verify {
   width: 100%; padding: 12px;
   background: transparent; 
@@ -585,7 +585,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   color: var(--green);
 }
 
-/* EL FEED EFÍMERO (CERO RUIDO) */
+/* EL FEED EFÃMERO (CERO RUIDO) */
 .ephemeral-feed {
   margin-top: 16px;
   border-top: 1px solid var(--gray-100);
@@ -611,7 +611,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   color: var(--gray-400); font-size: 11px;
 }
 
-/* INPUT EFÍMERO (REVELACIÓN PROGRESIVA) */
+/* INPUT EFÃMERO (REVELACIÃ“N PROGRESIVA) */
 .ephemeral-input-wrapper {
   margin-top: 16px;
   position: relative;
@@ -624,7 +624,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   padding: 12px 40px 12px 16px;
   font-family: var(--font);
   font-size: 13.5px;
-  color: var(--gray-800);
+  color: var(--gray-900);
   outline: none;
   transition: all 0.2s ease;
 }
@@ -639,7 +639,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   right: 6px; top: 6px;
   width: 30px; height: 30px;
   border-radius: 50%;
-  background: var(--gray-800);
+  background: var(--gray-900);
   color: white;
   border: none;
   display: flex; align-items: center; justify-content: center;
@@ -671,10 +671,66 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   transition: all 0.15s;
 }
 .role-chip.active {
-  background: var(--gray-800);
+  background: var(--gray-900);
   color: white;
 }
 @keyframes fadeInDown {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* TOAST NOTIFICATION */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  left: 0; right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 9999;
+  gap: 8px;
+}
+.toast-pill {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.02);
+  border-radius: 30px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  animation: slideDownToast 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-width: 90%;
+}
+.toast-pill.hiding {
+  animation: slideUpToast 0.3s ease forwards;
+}
+.toast-icon {
+  width: 24px; height: 24px;
+  background: var(--blue);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.toast-content {
+  display: flex; flex-direction: column;
+}
+.toast-title {
+  font-size: 13px; font-weight: 700; color: var(--gray-900);
+}
+.toast-desc {
+  font-size: 12px; color: var(--gray-600);
+}
+@keyframes slideDownToast {
+  0% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes slideUpToast {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
 }

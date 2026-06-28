@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
-import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send } from 'lucide-react';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -208,10 +208,26 @@ function App() {
   const [formPhone, setFormPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Ephemeral Feed
+  // Ephemeral Feed & Notifications Mock
   const [isTyping, setIsTyping] = useState(false);
   const [ephemeralText, setEphemeralText] = useState('');
   const [ephemeralRole, setEphemeralRole] = useState('Civil');
+  
+  const [mockNotes, setMockNotes] = useState<{role: string, text: string, time: string, locId: string}[]>([
+    { role: 'Civil', text: 'La vía por la principal está despejada, entregué agua hace un rato.', time: 'Hace 2h', locId: 'all' },
+    { role: 'Médico', text: 'Ya no traigan más suero, necesitamos son gasas y alcohol urgentemente.', time: 'Hace 5h', locId: 'all' }
+  ]);
+  const [mockVerifications, setMockVerifications] = useState<Record<string, number>>({});
+  
+  const [activeToast, setActiveToast] = useState<{title: string, desc: string, id: number} | null>(null);
+
+  const showToast = (title: string, desc: string) => {
+    const id = Date.now();
+    setActiveToast({title, desc, id});
+    setTimeout(() => {
+      setActiveToast(prev => prev?.id === id ? null : prev);
+    }, 4000); // Se oculta a los 4s
+  };
 
   // Check auth status on mount
   useEffect(() => {
@@ -694,7 +710,7 @@ function App() {
             
             {/* Header Image */}
             {selectedLoc.photo_url ? (
-              <div className="details-header-image" style={{ backgroundImage: `url(${selectedLoc.photo_url})` }}>
+        <div className="details-header-image" style={{ backgroundImage: `url(${selectedLoc.photo_url})` }}>
                 <button className="details-close-abs" onClick={() => setSelectedLoc(null)}>✕</button>
               </div>
             ) : (
@@ -706,7 +722,7 @@ function App() {
             <div className="details-body">
               <div className="trust-badge">
                 <span className="trust-dot"></span>
-                15 confirmaciones hoy
+                {15 + (mockVerifications[selectedLoc.id] || 0)} confirmaciones hoy
               </div>
               <div className="details-type" style={{display:'flex', alignItems:'center', gap:'4px'}}>{selectedLoc.type === 'hospital' ? <><Hospital size={14}/> Hospital</> : selectedLoc.type === 'iglesia' ? <><Church size={14}/> Iglesia</> : <><Package size={14}/> Centro de Acopio</>}</div>
               <h2 className="details-title">{selectedLoc.name}</h2>
@@ -743,18 +759,16 @@ function App() {
               <hr className="border-t border-gray-200 my-4" style={{margin: '16px 0', border: 'none', borderTop: '1px solid var(--gray-200)'}} />
 
               <button 
-                className="btn-ghost-verify"
-                onClick={(e) => {
-                  const btn = e.currentTarget;
-                  btn.classList.toggle('verified');
-                  if(btn.classList.contains('verified')) {
-                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Confirmado por ti`;
-                  } else {
-                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Confirmar actividad hoy`;
+                className={`btn-ghost-verify ${mockVerifications[selectedLoc.id] ? 'verified' : ''}`}
+                onClick={() => {
+                  const isVerified = mockVerifications[selectedLoc.id] === 1;
+                  setMockVerifications(prev => ({...prev, [selectedLoc.id]: isVerified ? 0 : 1}));
+                  if (!isVerified) {
+                    showToast('¡Validación registrada!', 'Gracias por confirmar que este centro sigue activo.');
                   }
                 }}
               >
-                <CheckCircle2 size={16} /> Confirmar actividad hoy
+                <CheckCircle2 size={16} /> {mockVerifications[selectedLoc.id] ? 'Confirmado por ti' : 'Confirmar actividad hoy'}
               </button>
 
               <div className="ephemeral-feed">
@@ -775,7 +789,8 @@ function App() {
                     className="ephemeral-send-btn" 
                     disabled={ephemeralText.trim().length === 0}
                     onClick={() => {
-                      alert(`Mock enviado como ${ephemeralRole}: ${ephemeralText}`);
+                      setMockNotes(prev => [{role: ephemeralRole, text: ephemeralText, time: 'Ahora', locId: selectedLoc.id}, ...prev]);
+                      showToast('Reporte publicado', 'Tu reporte ya es visible para las personas a menos de 5km.');
                       setEphemeralText('');
                       setIsTyping(false);
                     }}
@@ -797,19 +812,14 @@ function App() {
                   )}
                 </div>
                 
-                <div className="ephemeral-item" style={{marginTop: '16px'}}>
-                  <span className="ephemeral-role">Civil</span>
-                  <div>
-                    La vía por la principal está despejada, entregué agua hace un rato. <span className="ephemeral-time">• Hace 2h</span>
+                {mockNotes.filter(n => n.locId === 'all' || n.locId === selectedLoc.id).map((note, i) => (
+                  <div className="ephemeral-item" style={{marginTop: i === 0 ? '16px' : '0'}} key={i}>
+                    <span className="ephemeral-role">{note.role}</span>
+                    <div>
+                      {note.text} <span className="ephemeral-time">• {note.time}</span>
+                    </div>
                   </div>
-                </div>
-
-                <div className="ephemeral-item">
-                  <span className="ephemeral-role">Médico</span>
-                  <div>
-                    Ya no traigan más suero, necesitamos son gasas y alcohol urgentemente. <span className="ephemeral-time">• Hace 5h</span>
-                  </div>
-                </div>
+                ))}
               </div>
 
               {isUnlocked && acopios.some(a => a.id === selectedLoc.id) && (
@@ -913,6 +923,21 @@ function App() {
           </div>
         </div>
       )}
+      {/* TOAST NOTIFICATIONS */}
+      {activeToast && (
+        <div className="toast-container">
+          <div className="toast-pill">
+            <div className="toast-icon">
+              <Bell size={14} />
+            </div>
+            <div className="toast-content">
+              <span className="toast-title">{activeToast.title}</span>
+              <span className="toast-desc">{activeToast.desc}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
