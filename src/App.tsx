@@ -731,7 +731,12 @@ function App() {
                 </div>
               )}
 
-
+              {isUnlocked && acopios.some(a => a.id === selectedLoc.id) && (
+                <div className="admin-actions">
+                  <button className="btn-admin-edit" onClick={() => startEditing(selectedLoc)}>Editar Punto</button>
+                  <button className="btn-admin-delete" onClick={() => handleDelete(selectedLoc.id)}>Deshabilitar</button>
+                </div>
+              )}
 
               <button className="details-go-btn" onClick={() => window.open(gmapsUrl(userPos?.lat ?? null, userPos?.lng ?? null, selectedLoc.lat, selectedLoc.lng), '_blank')}>
                 <MapIcon size={18} /> Abrir ruta en Google Maps
