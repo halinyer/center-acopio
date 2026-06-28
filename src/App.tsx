@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
@@ -173,6 +173,13 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
 function App() {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [acopios, setAcopios] = useState<LocationRow[]>([]);
+  
+  // Refs para evitar re-suscripción en WebSockets
+  const userPosRef = useRef(userPos);
+  const acopiosRef = useRef(acopios);
+
+  useEffect(() => { userPosRef.current = userPos; }, [userPos]);
+  useEffect(() => { acopiosRef.current = acopios; }, [acopios]);
   const [osmHospitals, setOsmHospitals] = useState<LocationRow[]>([]);
   const [filter, setFilter] = useState<'all' | 'hospital' | 'acopio' | 'iglesia'>('all');
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
@@ -339,9 +346,11 @@ function App() {
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ephemeral_notes' }, (payload) => {
           fetchSocialData();
           // Solo notificar si estamos ubicados, tenemos acopios cargados y el reporte no lo hicimos nosotros
-          if (userPos && acopios.length > 0) {
-            const loc = acopios.find(a => a.id === payload.new.location_id);
-            if (loc && getDistanceKm(userPos.lat, userPos.lng, loc.lat, loc.lng) <= 10) {
+          const pos = userPosRef.current;
+          const acs = acopiosRef.current;
+          if (pos && acs.length > 0) {
+            const loc = acs.find(a => a.id === payload.new.location_id);
+            if (loc && getDistanceKm(pos.lat, pos.lng, loc.lat, loc.lng) <= 10) {
               // Chequeamos que no seamos nosotros los que enviamos esto
               showToast(`Nuevo reporte en ${loc.name}`, `${payload.new.role} reportó algo nuevo.`, loc.id);
             }
@@ -376,7 +385,7 @@ function App() {
         if (channel) supabase?.removeChannel(channel);
         if (socialChannel) supabase?.removeChannel(socialChannel);
       };
-  }, [fetchAcopios, fetchSocialData, userPos, acopios, deviceId]);
+  }, [fetchAcopios, fetchSocialData, deviceId]);
 
   const allHospitals = useMemo(() => {
     // Unir los hospitales quemados (HOSPITALS) con los descargados dinámicamente (osmHospitals)
@@ -794,7 +803,7 @@ function App() {
             <div className="details-body">
               <div className="trust-badge">
                 <span className="trust-dot"></span>
-                {15 + (mockVerifications[selectedLoc.id] || 0)} confirmaciones hoy
+                {mockVerifications[selectedLoc.id] || 0} confirmaciones hoy
               </div>
               <div className="details-type" style={{display:'flex', alignItems:'center', gap:'4px'}}>{selectedLoc.type === 'hospital' ? <><Hospital size={14}/> Hospital</> : selectedLoc.type === 'iglesia' ? <><Church size={14}/> Iglesia</> : <><Package size={14}/> Centro de Acopio</>}</div>
               <h2 className="details-title">{selectedLoc.name}</h2>
