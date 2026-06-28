@@ -420,7 +420,7 @@ function App() {
       }
     } else {
       if (!isDemoMode && supabase) {
-        const { data, error } = await supabase.rpc('add_location_secure', {
+        const { error } = await supabase.rpc('add_location_secure', {
           p_name: formName, p_type: formType, p_needs: formNeeds, p_address: placedAddress,
           p_lat: placedPos?.lat || 0, p_lng: placedPos?.lng || 0,
           p_leader_name: formLeader, p_leader_phone: formPhone,
