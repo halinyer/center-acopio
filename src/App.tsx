@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
-import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2 } from 'lucide-react';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -207,6 +207,11 @@ function App() {
   const [formLeader, setFormLeader] = useState('');
   const [formPhone, setFormPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Ephemeral Feed
+  const [isTyping, setIsTyping] = useState(false);
+  const [ephemeralText, setEphemeralText] = useState('');
+  const [ephemeralRole, setEphemeralRole] = useState('Civil');
 
   // Check auth status on mount
   useEffect(() => {
@@ -754,8 +759,45 @@ function App() {
 
               <div className="ephemeral-feed">
                 <div className="ephemeral-feed-title">Notas Recientes (24h)</div>
+
+                {/* PROGRESIVE DISCLOSURE INPUT */}
+                <div className="ephemeral-input-wrapper">
+                  <input 
+                    type="text" 
+                    className="ephemeral-input-pill" 
+                    placeholder="Agregar reporte rápido..." 
+                    maxLength={60}
+                    value={ephemeralText}
+                    onChange={(e) => setEphemeralText(e.target.value)}
+                    onFocus={() => setIsTyping(true)}
+                  />
+                  <button 
+                    className="ephemeral-send-btn" 
+                    disabled={ephemeralText.trim().length === 0}
+                    onClick={() => {
+                      alert(`Mock enviado como ${ephemeralRole}: ${ephemeralText}`);
+                      setEphemeralText('');
+                      setIsTyping(false);
+                    }}
+                  >
+                    <Send size={14} style={{marginLeft: '-2px'}} />
+                  </button>
+                  {isTyping && (
+                    <div className="ephemeral-roles">
+                      {['Civil', 'Médico', 'Rescatista'].map(role => (
+                        <button 
+                          key={role}
+                          className={`role-chip ${ephemeralRole === role ? 'active' : ''}`}
+                          onClick={() => setEphemeralRole(role)}
+                        >
+                          {role}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 
-                <div className="ephemeral-item">
+                <div className="ephemeral-item" style={{marginTop: '16px'}}>
                   <span className="ephemeral-role">Civil</span>
                   <div>
                     La vía por la principal está despejada, entregué agua hace un rato. <span className="ephemeral-time">• Hace 2h</span>
