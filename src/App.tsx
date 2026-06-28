@@ -80,18 +80,22 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
 
   const fetchOsm = useCallback(async () => {
     const zoom = map.getZoom();
-    if (zoom < 10) return; // Permitir zoom desde más lejos (10 abarca ciudades enteras)
+    if (zoom < 12) return; // Evitar áreas gigantescas que tumban la API
     const bounds = map.getBounds();
     const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
     
-    // Consulta a Overpass API amplia para TODAS las clínicas, hospitales e iglesias
+    // Consulta a Overpass API explícita sin regex para evitar errores de sintaxis o timeout
     const query = `
       [out:json][timeout:25];
       (
-        node["amenity"~"hospital|clinic"](${bbox});
-        way["amenity"~"hospital|clinic"](${bbox});
-        node["healthcare"~"hospital|clinic"](${bbox});
-        way["healthcare"~"hospital|clinic"](${bbox});
+        node["amenity"="hospital"](${bbox});
+        way["amenity"="hospital"](${bbox});
+        node["amenity"="clinic"](${bbox});
+        way["amenity"="clinic"](${bbox});
+        node["healthcare"="hospital"](${bbox});
+        way["healthcare"="hospital"](${bbox});
+        node["healthcare"="clinic"](${bbox});
+        way["healthcare"="clinic"](${bbox});
         node["amenity"="place_of_worship"](${bbox});
         way["amenity"="place_of_worship"](${bbox});
       );out center;`;
