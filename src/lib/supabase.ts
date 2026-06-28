@@ -65,18 +65,18 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
 
 // HOSPITALES
 export const HOSPITALS: LocationRow[] = [
-  { id: 'h1', name: 'Hospital Universitario de Caracas', type: 'hospital', needs: 'Equipos de trauma, medicamentos', address: 'Los Chaguaramos, Caracas', lat: 10.4911, lng: -66.8453, updated_at: new Date().toISOString() },
-  { id: 'h2', name: 'Hospital J.M. de los Ríos', type: 'hospital', needs: 'Pediatría, oxígeno, ventiladores', address: 'San Bernardino, Caracas', lat: 10.5055, lng: -66.8915, updated_at: new Date().toISOString() },
-  { id: 'h3', name: 'Hospital Vargas de Caracas', type: 'hospital', needs: 'Insumos quirúrgicos', address: 'San José, Caracas', lat: 10.5091, lng: -66.9132, updated_at: new Date().toISOString() },
-  { id: 'h4', name: 'Hospital Militar Carlos Arvelo', type: 'hospital', needs: 'Material quirúrgico', address: 'San Martín, Caracas', lat: 10.5032, lng: -66.9145, updated_at: new Date().toISOString() },
-  { id: 'h5', name: 'Clínica Santa Sofía', type: 'hospital', needs: 'Medicamentos pediátricos', address: 'El Cafetal, Caracas', lat: 10.4826, lng: -66.8725, updated_at: new Date().toISOString() },
-  { id: 'h10', name: 'Hospital Central de Maracay', type: 'hospital', needs: 'Medicamentos, generadores', address: 'Maracay, Aragua', lat: 10.2472, lng: -67.5967, updated_at: new Date().toISOString() },
-  { id: 'h11', name: 'Hospital Central de Valencia', type: 'hospital', needs: 'Insumos de emergencia', address: 'Valencia, Carabobo', lat: 10.1783, lng: -68.0050, updated_at: new Date().toISOString() },
-  { id: 'ig1', name: 'Iglesia San Pedro', type: 'iglesia', needs: 'Ropa, carpas, colchonetas', address: 'Los Chaguaramos, Caracas', lat: 10.4977, lng: -66.8889, leader_name: 'Padre José', updated_at: new Date().toISOString() },
-  { id: 'ig2', name: 'Catedral de Caracas', type: 'iglesia', needs: 'Comida, agua potable', address: 'Plaza Bolívar, Caracas', lat: 10.5056, lng: -66.9146, updated_at: new Date().toISOString() },
+  { id: 'h1', name: 'Hospital Universitario de Caracas', type: 'hospital', needs: 'Equipos de trauma, medicamentos', address: 'Los Chaguaramos, Caracas', lat: 10.4911, lng: -66.8453, created_at: new Date().toISOString() },
+  { id: 'h2', name: 'Hospital J.M. de los Ríos', type: 'hospital', needs: 'Pediatría, oxígeno, ventiladores', address: 'San Bernardino, Caracas', lat: 10.5055, lng: -66.8915, created_at: new Date().toISOString() },
+  { id: 'h3', name: 'Hospital Vargas de Caracas', type: 'hospital', needs: 'Insumos quirúrgicos', address: 'San José, Caracas', lat: 10.5091, lng: -66.9132, created_at: new Date().toISOString() },
+  { id: 'h4', name: 'Hospital Militar Carlos Arvelo', type: 'hospital', needs: 'Material quirúrgico', address: 'San Martín, Caracas', lat: 10.5032, lng: -66.9145, created_at: new Date().toISOString() },
+  { id: 'h5', name: 'Clínica Santa Sofía', type: 'hospital', needs: 'Medicamentos pediátricos', address: 'El Cafetal, Caracas', lat: 10.4826, lng: -66.8725, created_at: new Date().toISOString() },
+  { id: 'h10', name: 'Hospital Central de Maracay', type: 'hospital', needs: 'Medicamentos, generadores', address: 'Maracay, Aragua', lat: 10.2472, lng: -67.5967, created_at: new Date().toISOString() },
+  { id: 'h11', name: 'Hospital Central de Valencia', type: 'hospital', needs: 'Insumos de emergencia', address: 'Valencia, Carabobo', lat: 10.1783, lng: -68.0050, created_at: new Date().toISOString() },
+  { id: 'ig1', name: 'Iglesia San Pedro', type: 'iglesia', needs: 'Ropa, carpas, colchonetas', address: 'Los Chaguaramos, Caracas', lat: 10.4977, lng: -66.8889, leader_name: 'Padre José', created_at: new Date().toISOString() },
+  { id: 'ig2', name: 'Catedral de Caracas', type: 'iglesia', needs: 'Comida, agua potable', address: 'Plaza Bolívar, Caracas', lat: 10.5056, lng: -66.9146, created_at: new Date().toISOString() },
 ];
 
 export const DEMO_ACOPIOS: LocationRow[] = [
-  { id: 'a1', name: 'Centro de Acopio Altamira', type: 'centro_acopio', needs: 'Agua, alimentos enlatados, cobijas', address: 'Altamira, Chacao, Caracas', lat: 10.4961, lng: -66.8575, leader_name: 'María Fernández', leader_phone: '0412-000-0000', photo_url: 'https://images.unsplash.com/photo-1593113565694-c6f140685519?auto=format&fit=crop&q=80&w=400&h=200', updated_at: new Date().toISOString() },
-  { id: 'a2', name: 'Iglesia San Pedro', type: 'iglesia', needs: 'Ropa, carpas, colchonetas', address: 'Los Chaguaramos, Caracas', lat: 10.4977, lng: -66.8889, leader_name: 'Padre José', updated_at: new Date().toISOString() },
+  { id: 'a1', name: 'Centro de Acopio Altamira', type: 'centro_acopio', needs: 'Agua, alimentos enlatados, cobijas', address: 'Altamira, Chacao, Caracas', lat: 10.4961, lng: -66.8575, leader_name: 'María Fernández', leader_phone: '0412-000-0000', photo_url: 'https://images.unsplash.com/photo-1593113565694-c6f140685519?auto=format&fit=crop&q=80&w=400&h=200', created_at: new Date().toISOString() },
+  { id: 'a2', name: 'Iglesia San Pedro', type: 'iglesia', needs: 'Ropa, carpas, colchonetas', address: 'Los Chaguaramos, Caracas', lat: 10.4977, lng: -66.8889, leader_name: 'Padre José', created_at: new Date().toISOString() },
 ];
