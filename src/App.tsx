@@ -644,7 +644,7 @@ function App() {
         <div className="top-bar">
           <div className="brand">
             <div className="brand-icon"><Package size={24} color="white" /></div>
-            <div className="brand-text">Acopio<span>Venezuela</span></div>
+            <div className="brand-text">Acopio<span>Ven</span></div>
           </div>
           <div className="top-actions">
               <button 
