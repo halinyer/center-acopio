@@ -177,6 +177,7 @@ function App() {
   // Refs para evitar re-suscripción en WebSockets
   const userPosRef = useRef(userPos);
   const acopiosRef = useRef(acopios);
+  const recentSentNotes = useRef<Set<string>>(new Set());
 
   useEffect(() => { userPosRef.current = userPos; }, [userPos]);
   useEffect(() => { acopiosRef.current = acopios; }, [acopios]);
@@ -347,12 +348,17 @@ function App() {
           fetchSocialData();
           const pos = userPosRef.current;
           const acs = acopiosRef.current;
+          
+          // Prevenir auto-notificación comprobando si enviamos este mismo texto recientemente
+          if (recentSentNotes.current.has(payload.new.content)) {
+            recentSentNotes.current.delete(payload.new.content);
+            return; // Ignorar el broadcast de nuestro propio mensaje
+          }
+
           if (pos && acs.length > 0) {
             const loc = acs.find(a => a.id === payload.new.location_id);
             if (loc && getDistanceKm(pos.lat, pos.lng, loc.lat, loc.lng) <= 20) {
-              if (payload.new.device_id !== deviceId) {
-                showToast(`Nuevo reporte en ${loc.name}`, `${payload.new.role} reportó algo nuevo.`, loc.id);
-              }
+              showToast(`Nuevo reporte en ${loc.name}`, `${payload.new.role} reportó algo nuevo.`, loc.id);
             }
           }
         })
@@ -913,6 +919,8 @@ function App() {
                       const textToSend = ephemeralText;
                       const roleToSend = ephemeralRole;
                       
+                      recentSentNotes.current.add(textToSend);
+
                       // Optimistic UI
                       setMockNotes(prev => [{role: roleToSend, text: textToSend, time: 'Ahora', locId: selectedLoc.id}, ...prev]);
                       showToast(`Reporte en ${selectedLoc.name}`, 'Tu reporte ya es visible para las personas a menos de 10km.', selectedLoc.id);
