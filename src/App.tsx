@@ -202,6 +202,17 @@ function App() {
 
   useEffect(() => {
     fetchAcopios();
+    
+    // Configurar suscripción en tiempo real a Supabase
+    let channel: any;
+    if (!isDemoMode && supabase) {
+      channel = supabase
+        .channel('realtime:public:locations')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'locations' }, () => {
+          fetchAcopios();
+        })
+        .subscribe();
+    }
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -221,6 +232,10 @@ function App() {
       setFlyTarget({ lat: 10.4806, lng: -66.9036, zoom: 8 });
       setLocating(false);
     }
+
+    return () => {
+      if (channel) supabase?.removeChannel(channel);
+    };
   }, [fetchAcopios]);
 
   const allHospitals = useMemo(() => {
@@ -577,6 +592,8 @@ function App() {
                   </div>
                 );
               })}
+
+              <div className="powered-by">Powered by <strong>signalNote</strong></div>
             </div>
           </div>
         </div>

@@ -458,6 +458,12 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 .btn-call:active { opacity: 0.8; }
 .btn-wa:active { opacity: 0.8; }
 
+.powered-by {
+  margin-top: 24px; text-align: center; font-size: 11px;
+  color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px;
+}
+.powered-by strong { color: var(--gray-500); font-weight: 800; }
+
 /* Form field rows */
 .field-row { display: flex; gap: 12px; }
 
