@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
-import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer } from 'lucide-react';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -512,7 +512,7 @@ function App() {
           <div className="bottom-bar-scroll">
             <button className={`filter-pill ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}><MapIcon size={16}/> Todos</button>
             <button className={`filter-pill ${filter === 'hospital' ? 'active' : ''}`} onClick={() => setFilter('hospital')}><Hospital size={16}/> Hospitales</button>
-            <button className={`filter-pill ${filter === 'iglesia' ? 'active' : ''}`} onClick={() => setFilter('iglesia')}><Hospital size={16}/> Iglesias</button>
+            <button className={`filter-pill ${filter === 'iglesia' ? 'active' : ''}`} onClick={() => setFilter('iglesia')}><Church size={16}/> Iglesias</button>
             <button className={`filter-pill ${filter === 'acopio' ? 'active' : ''}`} onClick={() => setFilter('acopio')}><Package size={16}/> Acopio</button>
           </div>
         </div>
@@ -552,19 +552,19 @@ function App() {
             </div>
             <div className="help-body">
               <div className="help-step">
-                <span className="help-step-icon"><Hospital size={16} /> / <Hospital size={16} /></span>
+                <span className="help-step-icon"><Hospital size={22} /> / <Church size={22} /></span>
                 <p><strong>Hospitales e Iglesias:</strong> Se cargan automáticamente del mapa oficial libre de Venezuela al mover la pantalla. No tienes que agregarlos.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon"><Package size={16} /></span>
+                <span className="help-step-icon"><Package size={22} /></span>
                 <p><strong>Centros de Acopio (Rojos):</strong> Son los puntos de ayuda activos. Toca cualquiera para ver qué insumos necesitan y su teléfono.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon"><Phone size={16} /> / <MessageCircle size={16} /></span>
+                <span className="help-step-icon"><Phone size={22} /> / <MessageCircle size={22} /></span>
                 <p><strong>Contacto Directo:</strong> Puedes llamar al líder del centro o enviarle un WhatsApp directo en 1 clic para coordinar tu entrega.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon"><Lock size={16} /></span>
+                <span className="help-step-icon"><Lock size={22} /></span>
                 <p><strong>Agregar Puntos:</strong> Exclusivo para médicos, sacerdotes y líderes con código de autorización. Toca el candado e ingresa el código.</p>
               </div>
               <button className="help-close-btn" onClick={() => setShowHelpModal(false)}>Entendido</button>
@@ -602,7 +602,7 @@ function App() {
                 return (
                   <div key={loc.id} className="list-item" onClick={() => openDetails(loc)}>
                     <div className={`list-item-icon ${loc.type}`}>
-                      {loc.type === 'hospital' ? <Hospital size={16} color="white" /> : loc.type === 'iglesia' ? <Hospital size={16} color="white" /> : <Package size={16} color="white" />}
+                      {loc.type === 'hospital' ? <Hospital size={20} /> : loc.type === 'iglesia' ? <Church size={20} /> : <Package size={20} />}
                     </div>
                     <div className="list-item-info">
                       <div className="list-item-name">{loc.name}</div>
@@ -637,7 +637,7 @@ function App() {
             )}
 
             <div className="details-body">
-              <div className="details-type" style={{display:'flex', alignItems:'center', gap:'4px'}}>{selectedLoc.type === 'hospital' ? <><Hospital size={14}/> Hospital</> : selectedLoc.type === 'iglesia' ? <><Hospital size={14}/> Iglesia</> : <><Package size={14}/> Centro de Acopio</>}</div>
+              <div className="details-type" style={{display:'flex', alignItems:'center', gap:'4px'}}>{selectedLoc.type === 'hospital' ? <><Hospital size={14}/> Hospital</> : selectedLoc.type === 'iglesia' ? <><Church size={14}/> Iglesia</> : <><Package size={14}/> Centro de Acopio</>}</div>
               <h2 className="details-title">{selectedLoc.name}</h2>
               {selectedLoc.address && <p className="details-addr" style={{display:'flex', alignItems:'flex-start', gap:'4px'}}><MapPin size={16} style={{marginTop:'2px', flexShrink:0}}/> {selectedLoc.address}</p>}
               {distTo(selectedLoc.lat, selectedLoc.lng) !== null && (
@@ -725,7 +725,7 @@ function App() {
             </div>
             <form className="modal-body" onSubmit={handleSubmit}>
               <div className="selected-location">
-                <span className="selected-location-icon"><MapPin size={24} color="white" /></span>
+                <span className="selected-location-icon"><MapPin size={24} color="#ef4444" /></span>
                 <div>
                   <div className="selected-location-label">Ubicación seleccionada</div>
                   <div className="selected-location-addr">{placedAddress || 'Obteniendo dirección...'}</div>
