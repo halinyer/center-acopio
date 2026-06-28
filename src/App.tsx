@@ -210,7 +210,9 @@ function App() {
 
   // Check auth status on mount
   useEffect(() => {
-    if (localStorage.getItem('sos_admin') === 'true') {
+    const savedCode = localStorage.getItem('sos_auth_code');
+    if (savedCode) {
+      setAuthCode(savedCode);
       setIsUnlocked(true);
     }
   }, []);
@@ -221,17 +223,25 @@ function App() {
     setMapFlyTo({ lat: loc.lat, lng: loc.lng });
   };
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (authCode === 'SOS-VZLA-2026') {
-      setIsUnlocked(true);
-      localStorage.setItem('sos_admin', 'true');
-      setShowAuthModal(false);
-      setAuthCode('');
-      alert('✅ Modo Administrador desbloqueado. Ahora puedes agregar centros de acopio.');
+    if (!isDemoMode && supabase) {
+      const { data, error } = await supabase.rpc('verify_auth_code', { p_auth_code: authCode });
+      if (error || !data) {
+        alert('❌ Código incorrecto o error de conexión');
+        return;
+      }
     } else {
-      alert('❌ Código incorrecto');
+      if (authCode !== 'SOS-VZLA-2026') {
+        alert('❌ Código incorrecto (Demo)');
+        return;
+      }
     }
+
+    setIsUnlocked(true);
+    localStorage.setItem('sos_auth_code', authCode);
+    setShowAuthModal(false);
+    alert('✅ Modo Administrador desbloqueado. Ahora puedes agregar puntos.');
   };
 
   const fetchAcopios = useCallback(async () => {
@@ -398,19 +408,25 @@ function App() {
     
     if (editingId) {
       if (!isDemoMode && supabase) {
-        const updateData = { ...rowData };
-        delete (updateData as any).lat;
-        delete (updateData as any).lng;
-        delete (updateData as any).address;
-        const { error } = await supabase.from('locations').update(updateData).eq('id', editingId);
-        if (error) alert('Error actualizando: ' + error.message);
+        const { error } = await supabase.rpc('edit_location_secure', {
+          p_id: editingId,
+          p_name: formName, p_type: formType, p_needs: formNeeds,
+          p_leader_name: formLeader, p_leader_phone: formPhone,
+          p_auth_code: authCode
+        });
+        if (error) { alert('Error actualizando: ' + error.message); setSubmitting(false); return; }
       } else {
         setAcopios(prev => prev.map(a => a.id === editingId ? { ...a, ...rowData, lat: a.lat, lng: a.lng, address: a.address } : a));
       }
     } else {
       if (!isDemoMode && supabase) {
-        const { error } = await supabase.from('locations').insert([rowData]);
-        if (error) alert('Error guardando: ' + error.message);
+        const { data, error } = await supabase.rpc('add_location_secure', {
+          p_name: formName, p_type: formType, p_needs: formNeeds, p_address: placedAddress,
+          p_lat: placedPos?.lat || 0, p_lng: placedPos?.lng || 0,
+          p_leader_name: formLeader, p_leader_phone: formPhone,
+          p_auth_code: authCode
+        });
+        if (error) { alert('Error guardando: ' + error.message); setSubmitting(false); return; }
       } else {
         setAcopios(prev => [...prev, { id: `local-${Date.now()}`, ...rowData } as any]);
       }
@@ -437,8 +453,8 @@ function App() {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Seguro que deseas eliminar este punto de forma permanente?')) return;
     if (!isDemoMode && supabase) {
-      const { error } = await supabase.from('locations').delete().eq('id', id);
-      if (error) alert('Error eliminando: ' + error.message);
+      const { error } = await supabase.rpc('delete_location_secure', { p_id: id, p_auth_code: authCode });
+      if (error) { alert('Error eliminando: ' + error.message); return; }
     } else {
       setAcopios(prev => prev.filter(a => a.id !== id));
     }
