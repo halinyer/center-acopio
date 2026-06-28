@@ -80,9 +80,19 @@ export const DEMO_ACOPIOS: LocationRow[] = [
   { id: 'a2', name: 'Iglesia San Pedro', type: 'iglesia', needs: 'Ropa, carpas, colchonetas', address: 'Los Chaguaramos, Caracas', lat: 10.4977, lng: -66.8889, leader_name: 'Padre José', created_at: new Date().toISOString() },
 ];
 
-export async function searchLocation(query: string): Promise<Array<{lat: number, lon: number, display_name: string}>> {
+export async function searchLocation(query: string): Promise<Array<{lat: number, lon: number, display_name: string, type: string}>> {
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=VE&limit=5`;
+    const params = new URLSearchParams({
+      q: query,
+      format: 'json',
+      countrycodes: 'VE',
+      limit: '8',
+      dedupe: '1',
+      addressdetails: '1',
+      viewbox: '-73.3,-0.6,-59.8,12.5',
+      bounded: '1',
+    });
+    const url = `https://nominatim.openstreetmap.org/search?${params}`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
     return await res.json();
   } catch {

@@ -113,6 +113,7 @@ function App() {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     if (val.length < 3) {
       setSearchResults([]);
+      setIsSearching(false);
       return;
     }
     setIsSearching(true);
@@ -120,7 +121,7 @@ function App() {
       const res = await searchLocation(val);
       setSearchResults(res);
       setIsSearching(false);
-    }, 600);
+    }, 350);
   };
 
   const handleSelectResult = (r: any) => {
@@ -175,21 +176,35 @@ function App() {
   ]);
   const [mockVerifications, setMockVerifications] = useState<Record<string, number>>({});
   
-  // Toast & History
+  // Toast & History — con cache por dispositivo
   const [activeToast, setActiveToast] = useState<{title: string, desc: string, id: number, locId?: string} | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationsHistory, setNotificationsHistory] = useState<{id: number, title: string, desc: string, time: string, locId?: string, read: boolean}[]>([]);
+  const [notificationsHistory, setNotificationsHistory] = useState<{id: number, title: string, desc: string, time: string, locId?: string, read: boolean}[]>(() => {
+    try {
+      const cached = localStorage.getItem('notif_history');
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  });
+
+  // Persistir notificaciones al cambiar
+  useEffect(() => {
+    try {
+      const toSave = notificationsHistory.slice(0, 50); // Máximo 50 en caché
+      localStorage.setItem('notif_history', JSON.stringify(toSave));
+    } catch { /* quota exceeded */ }
+  }, [notificationsHistory]);
 
   const showToast = (title: string, desc: string, locId?: string) => {
     const id = Date.now();
     setActiveToast({title, desc, id, locId});
     
     // Add to history
-    setNotificationsHistory(prev => [{id, title, desc, time: 'Hace un momento', locId, read: false}, ...prev]);
+    const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    setNotificationsHistory(prev => [{id, title, desc, time: timeStr, locId, read: false}, ...prev.slice(0, 49)]);
 
     setTimeout(() => {
       setActiveToast(prev => prev?.id === id ? null : prev);
-    }, 4000); // Se oculta a los 4s
+    }, 4000);
   };
   
   const unreadCount = notificationsHistory.filter(n => !n.read).length;
