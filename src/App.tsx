@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode } from './lib/supabase';
+import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
@@ -178,6 +178,7 @@ function App() {
   const userPosRef = useRef(userPos);
   const acopiosRef = useRef(acopios);
   const recentSentNotes = useRef<Set<string>>(new Set());
+  const userStateRef = useRef<string>('');
 
   useEffect(() => { userPosRef.current = userPos; }, [userPos]);
   useEffect(() => { acopiosRef.current = acopios; }, [acopios]);
@@ -337,8 +338,14 @@ function App() {
     if (!isDemoMode && supabase) {
       channel = supabase
         .channel('realtime:public:locations')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'locations' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'locations' }, (payload) => {
           fetchAcopios();
+          if (payload.eventType === 'INSERT') {
+            const st = userStateRef.current;
+            if (st && payload.new.address && payload.new.address.includes(st)) {
+              showToast(`Nuevo punto en tu zona`, `Se ha agregado ${payload.new.name} cerca de ti.`, payload.new.id);
+            }
+          }
         })
         .subscribe();
         
@@ -381,12 +388,17 @@ function App() {
     }
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setFlyTarget({ lat: pos.coords.latitude, lng: pos.coords.longitude, zoom: 13 });
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setUserPos({ lat, lng });
+          setFlyTarget({ lat, lng, zoom: 13 });
           setLocating(false);
+          const stateStr = await getUserState(lat, lng);
+          if (stateStr) userStateRef.current = stateStr;
         },
-        () => {
+        (err) => {
+          console.warn('Geolocation error:', err.message);
           setUserPos({ lat: 10.4806, lng: -66.9036 });
           setFlyTarget({ lat: 10.4806, lng: -66.9036, zoom: 8 });
           setLocating(false);
