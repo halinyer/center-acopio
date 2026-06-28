@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState } from './lib/supabase';
+import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
@@ -100,6 +100,39 @@ function App() {
   const [filter, setFilter] = useState<'all' | 'hospital' | 'acopio' | 'iglesia'>('all');
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const [locating, setLocating] = useState(true);
+
+  // Buscador autocompletado
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef<any>(null);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (val.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      const res = await searchLocation(val);
+      setSearchResults(res);
+      setIsSearching(false);
+    }, 600);
+  };
+
+  const handleSelectResult = (r: any) => {
+    const lat = parseFloat(r.lat);
+    const lon = parseFloat(r.lon);
+    setFlyTarget({ lat, lng: lon, zoom: 16 });
+    setPlacedPos({ lat, lng: lon });
+    setPlacedAddress(r.display_name);
+    setShowForm(true);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
 
   // Access Code System
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -526,11 +559,35 @@ function App() {
         </div>
       )}
 
-      {/* PLACING BANNER */}
+      {/* PLACING HEADER */}
       {placingMode && !showForm && (
-        <div className="placing-banner">
-          <span>👆 Toca el mapa para colocar el punto</span>
-          <button className="placing-cancel" onClick={cancelPlacing}>Cancelar</button>
+        <div className="placing-header">
+          <div className="placing-banner">
+            <span>👆 Toca el mapa para fijar punto</span>
+            <button className="placing-cancel" onClick={cancelPlacing}>Cancelar</button>
+          </div>
+          <div className="autocomplete-container">
+            <div className="autocomplete-input-wrap">
+              <MapPin size={16} className="autocomplete-icon" />
+              <input 
+                type="text" 
+                placeholder="O busca una dirección específica..." 
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+              {isSearching && <div className="autocomplete-spinner" />}
+            </div>
+            {searchResults.length > 0 && (
+              <div className="autocomplete-results">
+                {searchResults.map((r, i) => (
+                  <div key={i} className="autocomplete-item" onClick={() => handleSelectResult(r)}>
+                    <div className="ac-title">{r.display_name.split(',')[0]}</div>
+                    <div className="ac-subtitle">{r.display_name}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

@@ -79,3 +79,13 @@ export const DEMO_ACOPIOS: LocationRow[] = [
   { id: 'a1', name: 'Centro de Acopio Altamira', type: 'centro_acopio', needs: 'Agua, alimentos enlatados, cobijas', address: 'Altamira, Chacao, Caracas', lat: 10.4961, lng: -66.8575, leader_name: 'María Fernández', leader_phone: '0412-000-0000', photo_url: 'https://images.unsplash.com/photo-1593113565694-c6f140685519?auto=format&fit=crop&q=80&w=400&h=200', created_at: new Date().toISOString() },
   { id: 'a2', name: 'Iglesia San Pedro', type: 'iglesia', needs: 'Ropa, carpas, colchonetas', address: 'Los Chaguaramos, Caracas', lat: 10.4977, lng: -66.8889, leader_name: 'Padre José', created_at: new Date().toISOString() },
 ];
+
+export async function searchLocation(query: string): Promise<Array<{lat: number, lon: number, display_name: string}>> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=VE&limit=5`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
