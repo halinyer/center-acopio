@@ -450,10 +450,7 @@ function App() {
     return d < 1 ? `${Math.round(d * 1000)}m` : `${d.toFixed(1)}km`;
   };
 
-  const openDetails = (loc: LocationRow) => {
-    setShowList(false);
-    setSelectedLoc(loc);
-  };
+
 
   // WhatsApp formatter
   const formatWaLink = (phone: string) => {
