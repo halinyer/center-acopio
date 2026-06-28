@@ -9,19 +9,34 @@ export const supabase = isDemoMode
   ? null
   : createClient(supabaseUrl, supabaseAnonKey);
 
-export type LocationRow = {
+export interface LocationRow {
   id: string;
   name: string;
-  type: 'hospital' | 'centro_acopio' | 'iglesia';
-  needs: string;
-  address: string;
   lat: number;
   lng: number;
+  type: 'hospital' | 'centro_acopio' | 'iglesia';
+  address?: string;
+  needs?: string;
   leader_name?: string;
   leader_phone?: string;
   photo_url?: string;
-  created_by?: string;
-  updated_at: string;
+  created_at: string;
+  is_active?: boolean;
+}
+
+export interface EphemeralNote {
+  id: string;
+  location_id: string;
+  role: string;
+  content: string;
+  created_at: string;
+}
+
+export interface Validation {
+  id: string;
+  location_id: string;
+  device_id: string;
+  created_at: string;
 };
 
 // Haversine — distancia en km

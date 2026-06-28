@@ -247,6 +247,15 @@ function App() {
     }
   }, []);
 
+  const [deviceId] = useState(() => {
+    let id = localStorage.getItem('device_id');
+    if (!id) {
+      id = Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('device_id', id);
+    }
+    return id;
+  });
+
   const openDetails = (loc: LocationRow) => {
     setShowList(false);
     setSelectedLoc(loc);
@@ -281,16 +290,65 @@ function App() {
     else setAcopios(data || []);
   }, []);
 
+  const fetchSocialData = useCallback(async () => {
+    if (isDemoMode || !supabase) return;
+    
+    // Notes
+    const yesterday = new Date(Date.now() - 24*60*60*1000).toISOString();
+    const { data: notesData } = await supabase.from('ephemeral_notes').select('*').gte('created_at', yesterday).order('created_at', { ascending: false });
+    if (notesData) {
+      setMockNotes(notesData.map((n: any) => ({
+        role: n.role,
+        text: n.content,
+        time: new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        locId: n.location_id
+      })));
+    }
+
+    // Validations
+    const { data: valData } = await supabase.from('validations').select('location_id, device_id').gte('created_at', yesterday);
+    if (valData) {
+      const counts: Record<string, number> = {};
+      valData.forEach((v: any) => {
+        counts[v.location_id] = (counts[v.location_id] || 0) + 1;
+        if (v.device_id === deviceId) {
+          counts[v.location_id + '_self'] = 1;
+        }
+      });
+      setMockVerifications(counts);
+    }
+  }, [deviceId]);
+
   useEffect(() => {
     fetchAcopios();
+    fetchSocialData();
     
     // Configurar suscripción en tiempo real a Supabase
     let channel: any;
+    let socialChannel: any;
     if (!isDemoMode && supabase) {
       channel = supabase
         .channel('realtime:public:locations')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'locations' }, () => {
           fetchAcopios();
+        })
+        .subscribe();
+        
+      socialChannel = supabase
+        .channel('realtime:public:social')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ephemeral_notes' }, (payload) => {
+          fetchSocialData();
+          // Solo notificar si estamos ubicados, tenemos acopios cargados y el reporte no lo hicimos nosotros
+          if (userPos && acopios.length > 0) {
+            const loc = acopios.find(a => a.id === payload.new.location_id);
+            if (loc && getDistanceKm(userPos.lat, userPos.lng, loc.lat, loc.lng) <= 10) {
+              // Chequeamos que no seamos nosotros los que enviamos esto
+              showToast(`Nuevo reporte en ${loc.name}`, `${payload.new.role} reportó algo nuevo.`, loc.id);
+            }
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'validations' }, () => {
+          fetchSocialData();
         })
         .subscribe();
     }
@@ -314,10 +372,11 @@ function App() {
       setLocating(false);
     }
 
-    return () => {
-      if (channel) supabase?.removeChannel(channel);
-    };
-  }, [fetchAcopios]);
+      return () => {
+        if (channel) supabase?.removeChannel(channel);
+        if (socialChannel) supabase?.removeChannel(socialChannel);
+      };
+  }, [fetchAcopios, fetchSocialData, userPos, acopios, deviceId]);
 
   const allHospitals = useMemo(() => {
     // Unir los hospitales quemados (HOSPITALS) con los descargados dinámicamente (osmHospitals)
@@ -780,16 +839,36 @@ function App() {
               <hr className="border-t border-gray-200 my-4" style={{margin: '16px 0', border: 'none', borderTop: '1px solid var(--gray-200)'}} />
 
               <button 
-                className={`btn-ghost-verify ${mockVerifications[selectedLoc.id] ? 'verified' : ''}`}
-                onClick={() => {
-                  const isVerified = mockVerifications[selectedLoc.id] === 1;
-                  setMockVerifications(prev => ({...prev, [selectedLoc.id]: isVerified ? 0 : 1}));
+                className={`btn-ghost-verify ${mockVerifications[selectedLoc.id + '_self'] ? 'verified' : ''}`}
+                onClick={async () => {
+                  const isVerified = mockVerifications[selectedLoc.id + '_self'] === 1;
+                  
+                  // Optimistic UI Update
+                  setMockVerifications(prev => ({
+                    ...prev, 
+                    [selectedLoc.id + '_self']: isVerified ? 0 : 1,
+                    [selectedLoc.id]: (prev[selectedLoc.id] || 0) + (isVerified ? -1 : 1)
+                  }));
+
                   if (!isVerified) {
                     showToast('¡Validación registrada!', `Gracias por confirmar que ${selectedLoc.name} sigue activo.`, selectedLoc.id);
+                    if (!isDemoMode && supabase) {
+                      await supabase.from('validations').insert({
+                        location_id: selectedLoc.id,
+                        device_id: deviceId
+                      });
+                    }
+                  } else {
+                    if (!isDemoMode && supabase) {
+                      await supabase.from('validations').delete().match({
+                        location_id: selectedLoc.id,
+                        device_id: deviceId
+                      });
+                    }
                   }
                 }}
               >
-                <CheckCircle2 size={16} /> {mockVerifications[selectedLoc.id] ? 'Confirmado por ti' : 'Confirmar actividad hoy'}
+                <CheckCircle2 size={16} /> {mockVerifications[selectedLoc.id + '_self'] ? 'Confirmado por ti' : 'Confirmar actividad hoy'}
               </button>
 
               <div className="ephemeral-feed">
@@ -809,11 +888,23 @@ function App() {
                   <button 
                     className="ephemeral-send-btn" 
                     disabled={ephemeralText.trim().length === 0}
-                    onClick={() => {
-                      setMockNotes(prev => [{role: ephemeralRole, text: ephemeralText, time: 'Ahora', locId: selectedLoc.id}, ...prev]);
-                      showToast(`Reporte en ${selectedLoc.name}`, 'Tu reporte ya es visible para las personas a menos de 5km.', selectedLoc.id);
+                    onClick={async () => {
+                      const textToSend = ephemeralText;
+                      const roleToSend = ephemeralRole;
+                      
+                      // Optimistic UI
+                      setMockNotes(prev => [{role: roleToSend, text: textToSend, time: 'Ahora', locId: selectedLoc.id}, ...prev]);
+                      showToast(`Reporte en ${selectedLoc.name}`, 'Tu reporte ya es visible para las personas a menos de 10km.', selectedLoc.id);
                       setEphemeralText('');
                       setIsTyping(false);
+                      
+                      if (!isDemoMode && supabase) {
+                        await supabase.from('ephemeral_notes').insert({
+                          location_id: selectedLoc.id,
+                          role: roleToSend,
+                          content: textToSend
+                        });
+                      }
                     }}
                   >
                     <Send size={14} style={{marginLeft: '-2px'}} />
