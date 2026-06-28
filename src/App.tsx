@@ -345,19 +345,31 @@ function App() {
         .channel('realtime:public:social')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ephemeral_notes' }, (payload) => {
           fetchSocialData();
-          // Solo notificar si estamos ubicados, tenemos acopios cargados y el reporte no lo hicimos nosotros
           const pos = userPosRef.current;
           const acs = acopiosRef.current;
           if (pos && acs.length > 0) {
             const loc = acs.find(a => a.id === payload.new.location_id);
-            if (loc && getDistanceKm(pos.lat, pos.lng, loc.lat, loc.lng) <= 10) {
-              // Chequeamos que no seamos nosotros los que enviamos esto
-              showToast(`Nuevo reporte en ${loc.name}`, `${payload.new.role} reportó algo nuevo.`, loc.id);
+            if (loc && getDistanceKm(pos.lat, pos.lng, loc.lat, loc.lng) <= 20) {
+              if (payload.new.device_id !== deviceId) {
+                showToast(`Nuevo reporte en ${loc.name}`, `${payload.new.role} reportó algo nuevo.`, loc.id);
+              }
             }
           }
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'validations' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'validations' }, (payload) => {
           fetchSocialData();
+          if (payload.eventType === 'INSERT') {
+            const pos = userPosRef.current;
+            const acs = acopiosRef.current;
+            if (pos && acs.length > 0) {
+              const loc = acs.find(a => a.id === payload.new.location_id);
+              if (loc && getDistanceKm(pos.lat, pos.lng, loc.lat, loc.lng) <= 20) {
+                if (payload.new.device_id !== deviceId) {
+                  showToast(`Actividad en ${loc.name}`, `Alguien acaba de confirmar que este centro sigue activo.`, loc.id);
+                }
+              }
+            }
+          }
         })
         .subscribe();
     }
