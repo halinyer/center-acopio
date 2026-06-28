@@ -219,15 +219,24 @@ function App() {
   ]);
   const [mockVerifications, setMockVerifications] = useState<Record<string, number>>({});
   
-  const [activeToast, setActiveToast] = useState<{title: string, desc: string, id: number} | null>(null);
+  // Toast & History
+  const [activeToast, setActiveToast] = useState<{title: string, desc: string, id: number, locId?: string} | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationsHistory, setNotificationsHistory] = useState<{id: number, title: string, desc: string, time: string, locId?: string, read: boolean}[]>([]);
 
-  const showToast = (title: string, desc: string) => {
+  const showToast = (title: string, desc: string, locId?: string) => {
     const id = Date.now();
-    setActiveToast({title, desc, id});
+    setActiveToast({title, desc, id, locId});
+    
+    // Add to history
+    setNotificationsHistory(prev => [{id, title, desc, time: 'Hace un momento', locId, read: false}, ...prev]);
+
     setTimeout(() => {
       setActiveToast(prev => prev?.id === id ? null : prev);
     }, 4000); // Se oculta a los 4s
   };
+  
+  const unreadCount = notificationsHistory.filter(n => !n.read).length;
 
   // Check auth status on mount
   useEffect(() => {
@@ -571,7 +580,19 @@ function App() {
             <div className="brand-text">Acopio<span>Venezuela</span></div>
           </div>
           <div className="top-actions">
-            {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
+              <button 
+                className="btn-circle" 
+                style={{position: 'relative'}} 
+                onClick={() => {
+                  setShowNotifications(true);
+                  setNotificationsHistory(prev => prev.map(n => ({...n, read: true})));
+                }} 
+                title="Notificaciones"
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+              </button>
+              {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
             {isUnlocked && <button className="btn-pill btn-add-top" onClick={startPlacing}><Plus size={18} /> <span>Agregar</span></button>}
             <button className="btn-pill" onClick={() => setShowList(true)}><ListIcon size={18} /> <span>Ver lista</span></button>
             <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
@@ -764,7 +785,7 @@ function App() {
                   const isVerified = mockVerifications[selectedLoc.id] === 1;
                   setMockVerifications(prev => ({...prev, [selectedLoc.id]: isVerified ? 0 : 1}));
                   if (!isVerified) {
-                    showToast('¡Validación registrada!', 'Gracias por confirmar que este centro sigue activo.');
+                    showToast('¡Validación registrada!', `Gracias por confirmar que ${selectedLoc.name} sigue activo.`, selectedLoc.id);
                   }
                 }}
               >
@@ -790,7 +811,7 @@ function App() {
                     disabled={ephemeralText.trim().length === 0}
                     onClick={() => {
                       setMockNotes(prev => [{role: ephemeralRole, text: ephemeralText, time: 'Ahora', locId: selectedLoc.id}, ...prev]);
-                      showToast('Reporte publicado', 'Tu reporte ya es visible para las personas a menos de 5km.');
+                      showToast(`Reporte en ${selectedLoc.name}`, 'Tu reporte ya es visible para las personas a menos de 5km.', selectedLoc.id);
                       setEphemeralText('');
                       setIsTyping(false);
                     }}
@@ -925,10 +946,62 @@ function App() {
           </div>
         </div>
       )}
+      {/* NOTIFICATIONS HISTORY MODAL */}
+      {showNotifications && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowNotifications(false); }}>
+          <div className="modal-sheet notifications-sheet">
+            <div className="modal-handle" />
+            <div className="modal-header" style={{paddingBottom: '8px'}}>
+              <h2>Buzón de Notificaciones</h2>
+              <button className="btn-close" onClick={() => setShowNotifications(false)}>✕</button>
+            </div>
+            
+            <div style={{overflowY: 'auto', flex: 1}}>
+              {notificationsHistory.length === 0 ? (
+                <div style={{padding: '40px 20px', textAlign: 'center', color: 'var(--gray-500)', fontSize: '14px'}}>
+                  No tienes notificaciones recientes.
+                </div>
+              ) : (
+                notificationsHistory.map(n => (
+                  <div 
+                    key={n.id} 
+                    className={`notification-item ${!n.read ? 'unread' : ''}`}
+                    onClick={() => {
+                      if(n.locId) {
+                        const loc = acopios.find(a => a.id === n.locId);
+                        if(loc) openDetails(loc);
+                      }
+                      setShowNotifications(false);
+                    }}
+                  >
+                    <div className="notification-icon"><Bell size={16} /></div>
+                    <div className="notification-text">
+                      <strong>{n.title}</strong>
+                      <p>{n.desc}</p>
+                      <span>{n.time}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TOAST NOTIFICATIONS */}
       {activeToast && (
         <div className="toast-container">
-          <div className="toast-pill">
+          <div 
+            className="toast-pill" 
+            style={{cursor: activeToast.locId ? 'pointer' : 'default'}}
+            onClick={() => {
+              if(activeToast.locId) {
+                const loc = acopios.find(a => a.id === activeToast.locId);
+                if(loc) openDetails(loc);
+                setActiveToast(null);
+              }
+            }}
+          >
             <div className="toast-icon">
               <Bell size={14} />
             </div>

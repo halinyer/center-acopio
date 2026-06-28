@@ -759,3 +759,56 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   0% { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(-100%); opacity: 0; }
 }
+
+/* NOTIFICATION BADGE */
+.notification-badge {
+  position: absolute;
+  top: -2px; right: -2px;
+  background: var(--red);
+  color: white;
+  font-size: 10px; font-weight: 800;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--white);
+}
+
+/* NOTIFICATIONS SHEET */
+.notifications-sheet {
+  background: var(--gray-50);
+}
+.notification-item {
+  display: flex; gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--white);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.notification-item:active {
+  background: var(--gray-100);
+}
+.notification-item.unread {
+  background: #eff6ff; /* light blue */
+}
+.notification-icon {
+  width: 32px; height: 32px;
+  background: var(--gray-100); color: var(--blue);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.notification-item.unread .notification-icon {
+  background: var(--blue); color: white;
+}
+.notification-text {
+  flex: 1; display: flex; flex-direction: column; gap: 4px;
+}
+.notification-text strong {
+  font-size: 13.5px; color: var(--gray-900);
+}
+.notification-text p {
+  font-size: 12.5px; color: var(--gray-600); line-height: 1.4;
+}
+.notification-text span {
+  font-size: 11px; color: var(--gray-400); font-weight: 600;
+}
