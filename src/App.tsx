@@ -828,8 +828,10 @@ function App() {
                   <button className="btn-admin-delete" onClick={() => handleDelete(selectedLoc.id)}>Deshabilitar</button>
                 </div>
               )}
+            </div>
 
-              <button className="details-go-btn" onClick={() => window.open(gmapsUrl(userPos?.lat ?? null, userPos?.lng ?? null, selectedLoc.lat, selectedLoc.lng), '_blank')}>
+            <div className="details-footer">
+              <button className="details-go-btn" onClick={() => window.open(gmapsUrl(userPos?.lat ?? null, userPos?.lng ?? null, selectedLoc.lat, selectedLoc.lng), '_blank')} style={{margin: 0}}>
                 <MapIcon size={18} /> Abrir ruta en Google Maps
               </button>
             </div>

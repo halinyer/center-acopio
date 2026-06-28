@@ -392,7 +392,13 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 .loading-text { font-size: 15px; font-weight: 600; color: var(--gray-500); }
 
 /* ========== DETAILS MODAL ========== */
-.details-sheet { padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+.details-sheet { 
+  padding: 0; 
+  display: flex; 
+  flex-direction: column; 
+  overflow: hidden; 
+  position: relative;
+}
 .details-header-image {
   height: 200px; width: 100%; background-size: cover; background-position: center;
   position: relative; flex-shrink: 0;
@@ -403,14 +409,29 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 }
 .details-close-abs {
   position: absolute; top: 16px; right: 16px;
-  width: 32px; height: 32px; background: rgba(0,0,0,0.5); border: none;
-  border-radius: 50%; font-size: 16px; cursor: pointer; color: white;
-  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+  width: 32px; height: 32px; background: rgba(0,0,0,0.4);
+  color: white; border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; backdrop-filter: blur(4px);
 }
 .details-header-color .details-close-abs {
   background: white; color: var(--gray-500); box-shadow: var(--shadow);
 }
-.details-body { padding: 20px; flex: 1; overflow-y: auto; }
+.details-body { 
+  padding: 20px; 
+  overflow-y: auto; 
+  padding-bottom: 90px; 
+}
+.details-footer {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px 20px;
+  background: linear-gradient(to top, rgba(255,255,255,1) 70%, rgba(255,255,255,0));
+  pointer-events: none;
+}
+.details-footer > * {
+  pointer-events: auto;
+}
 .details-type { font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 .details-title { font-size: 22px; font-weight: 800; color: var(--gray-900); margin-bottom: 6px; line-height: 1.2; }
 .details-addr { font-size: 14px; color: var(--gray-600); margin-bottom: 4px; }
@@ -585,21 +606,25 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   color: var(--green);
 }
 
-/* EL FEED EFÃMERO (CERO RUIDO) */
+/* EL FEED EFÃ MERO (CERO RUIDO) */
 .ephemeral-feed {
-  margin-top: 16px;
+  margin-top: 24px;
   border-top: 1px solid var(--gray-100);
-  padding-top: 12px;
+  padding-top: 20px;
 }
 .ephemeral-feed-title {
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
   color: var(--gray-400); font-weight: 700; margin-bottom: 8px;
 }
 .ephemeral-item {
-  display: flex; gap: 8px; align-items: flex-start;
-  padding: 6px 0;
-  font-size: 13px; color: var(--gray-700);
-  line-height: 1.4;
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 0;
+  font-size: 13.5px; color: var(--gray-700);
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+.ephemeral-item:last-child {
+  border-bottom: none;
 }
 .ephemeral-role {
   font-size: 10px; font-weight: 700; 
