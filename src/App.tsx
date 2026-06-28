@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { supabase, isDemoMode, HOSPITALS, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState } from './lib/supabase';
+import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
@@ -84,91 +84,6 @@ function MapResizer() {
   return null;
 }
 
-// COMPONENTE: Carga dinámica de hospitales e iglesias al mover el mapa
-function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch<React.SetStateAction<LocationRow[]>> }) {
-  const map = useMap();
-
-  const fetchOsm = useCallback(async () => {
-    const zoom = map.getZoom();
-    if (zoom < 10) return; // Permitir zoom desde más lejos
-    const bounds = map.getBounds();
-    const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-    
-    // Consulta a Overpass API explícita sin regex para evitar errores de sintaxis o timeout
-    const query = `
-      [out:json][timeout:25];
-      (
-        node["amenity"="hospital"](${bbox});
-        way["amenity"="hospital"](${bbox});
-        node["amenity"="clinic"](${bbox});
-        way["amenity"="clinic"](${bbox});
-        node["healthcare"="hospital"](${bbox});
-        way["healthcare"="hospital"](${bbox});
-        node["healthcare"="clinic"](${bbox});
-        way["healthcare"="clinic"](${bbox});
-        node["amenity"="place_of_worship"](${bbox});
-        way["amenity"="place_of_worship"](${bbox});
-      );out center;`;
-    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-    
-    try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        if (res.status === 429) {
-          console.warn("El servidor de mapas gratuitos está saturado por muchas consultas.");
-        }
-        return;
-      }
-      const data = await res.json();
-      
-      const newHospitals: LocationRow[] = data.elements.map((el: any) => {
-        const lat = el.lat || el.center?.lat;
-        const lon = el.lon || el.center?.lon;
-        
-        let name = el.tags?.name || 'Lugar sin nombre';
-        let type: 'hospital' | 'iglesia' = 'hospital';
-        
-        if (el.tags?.amenity === 'place_of_worship') {
-          type = 'iglesia';
-          if (!el.tags?.name) name = 'Iglesia / Parroquia';
-        } else if (!el.tags?.name) {
-          name = el.tags?.amenity === 'clinic' || el.tags?.healthcare === 'clinic' ? 'Clínica' : 'Hospital';
-        }
-        
-        return {
-          id: `osm-${el.id}`,
-          name: name,
-          type: type,
-          needs: type === 'iglesia' ? 'Posible centro de acopio - Contactar líderes' : 'Contactar para consultar necesidades',
-          address: 'Ubicación importada del mapa',
-          lat: lat,
-          lng: lon,
-          updated_at: new Date().toISOString()
-        };
-      });
-
-      setOsmHospitals(prev => {
-        const map = new Map(prev.map(h => [h.id, h]));
-        newHospitals.forEach(h => map.set(h.id, h));
-        return Array.from(map.values());
-      });
-    } catch (err) {
-      console.error('Error cargando datos OSM:', err);
-      // Solo mostrar un toast genérico si no se ha mostrado ya
-    }
-  }, [map, setOsmHospitals]);
-
-  useMapEvents({
-    moveend: fetchOsm
-  });
-
-  useEffect(() => {
-    fetchOsm();
-  }, [fetchOsm]);
-
-  return null;
-}
-
 // ========== MAIN APP ==========
 function App() {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
@@ -182,7 +97,6 @@ function App() {
 
   useEffect(() => { userPosRef.current = userPos; }, [userPos]);
   useEffect(() => { acopiosRef.current = acopios; }, [acopios]);
-  const [osmHospitals, setOsmHospitals] = useState<LocationRow[]>([]);
   const [filter, setFilter] = useState<'all' | 'hospital' | 'acopio' | 'iglesia'>('all');
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const [locating, setLocating] = useState(true);
@@ -417,15 +331,7 @@ function App() {
       };
   }, [fetchAcopios, fetchSocialData, deviceId]);
 
-  const allHospitals = useMemo(() => {
-    // Unir los hospitales quemados (HOSPITALS) con los descargados dinámicamente (osmHospitals)
-    const map = new Map();
-    HOSPITALS.forEach(h => map.set(h.id, h));
-    osmHospitals.forEach(h => map.set(h.id, h)); // Sobrescribe si por casualidad choca el ID, pero los OSM tienen prefijo "osm-"
-    return Array.from(map.values());
-  }, [osmHospitals]);
-
-  const allLocations = useMemo(() => [...allHospitals, ...acopios], [allHospitals, acopios]);
+  const allLocations = useMemo(() => acopios, [acopios]);
   const filtered = useMemo(() => {
     if (filter === 'all') return allLocations;
     if (filter === 'acopio') return allLocations.filter(loc => loc.type === 'centro_acopio');
@@ -638,7 +544,6 @@ function App() {
           <MapCenterer flyTo={mapFlyTo} />
           {flyTarget && <FlyTo lat={flyTarget.lat} lng={flyTarget.lng} zoom={flyTarget.zoom} />}
           {placingMode && !showForm && <MapClickHandler onMapClick={handleMapClick} />}
-          <DynamicHospitals setOsmHospitals={setOsmHospitals} />
           <MapResizer />
 
           {userPos && (
@@ -705,8 +610,6 @@ function App() {
         <div className="bottom-bar-wrapper">
           <div className="bottom-bar-scroll">
             <button className={`filter-pill ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}><MapIcon size={16}/> Todos</button>
-            <button className={`filter-pill ${filter === 'hospital' ? 'active' : ''}`} onClick={() => setFilter('hospital')}><Hospital size={16}/> Hospitales</button>
-            <button className={`filter-pill ${filter === 'iglesia' ? 'active' : ''}`} onClick={() => setFilter('iglesia')}><Church size={16}/> Iglesias</button>
             <button className={`filter-pill ${filter === 'acopio' ? 'active' : ''}`} onClick={() => setFilter('acopio')}><Package size={16}/> Acopio</button>
           </div>
         </div>
@@ -1040,11 +943,10 @@ function App() {
               </div>
 
               <div className="field">
-                <label style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Tipo de Lugar</label>
+                <label>Tipo de lugar</label>
                 <select value={formType} onChange={(e) => setFormType(e.target.value as any)}>
-                  <option value="centro_acopio">Centro de Acopio</option>
-                  <option value="hospital">Hospital / Clínica</option>
-                  <option value="iglesia">Iglesia / Centro Religioso</option>
+                  <option value="centro_acopio">📦 Centro de Acopio</option>
+                  <option value="iglesia">⛪ Iglesia / Parroquia</option>
                 </select>
               </div>
               
