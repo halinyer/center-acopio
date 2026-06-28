@@ -122,7 +122,6 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
           };
         });
 
-        // Guardamos los hospitales evitando duplicados por ID
         setOsmHospitals(prev => {
           const map = new Map(prev.map(h => [h.id, h]));
           newHospitals.forEach(h => map.set(h.id, h));
@@ -136,7 +135,6 @@ function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch
   return null;
 }
 
-// ========== MAIN APP ==========
 function App() {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [acopios, setAcopios] = useState<LocationRow[]>([]);
@@ -145,27 +143,22 @@ function App() {
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const [locating, setLocating] = useState(true);
 
-  // Access Code System
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authCode, setAuthCode] = useState('');
-  
-  // Help modal
   const [showHelpModal, setShowHelpModal] = useState(false);
 
-  // Modals
   const [showList, setShowList] = useState(false);
   const [listSearch, setListSearch] = useState('');
-  const [selectedLoc, setSelectedLoc] = useState<LocationRow | null>(null); // Details modal
+  const [selectedLoc, setSelectedLoc] = useState<LocationRow | null>(null);
 
-  // Placing mode
   const [showLocationChooser, setShowLocationChooser] = useState(false);
   const [placingMode, setPlacingMode] = useState(false);
   const [placedPos, setPlacedPos] = useState<{ lat: number; lng: number } | null>(null);
   const [placedAddress, setPlacedAddress] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   
-  // Form fields
   const [formName, setFormName] = useState('');
   const [formNeeds, setFormNeeds] = useState('');
   const [formLeader, setFormLeader] = useState('');
@@ -173,7 +166,6 @@ function App() {
   const [formPhoto, setFormPhoto] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Check auth status on mount
   useEffect(() => {
     if (localStorage.getItem('sos_admin') === 'true') {
       setIsUnlocked(true);
@@ -187,7 +179,7 @@ function App() {
       localStorage.setItem('sos_admin', 'true');
       setShowAuthModal(false);
       setAuthCode('');
-      alert('✅ Modo Administrador desbloqueado. Ahora puedes agregar centros de acopio.');
+      alert('✅ Modo Administrador desbloqueado.');
     } else {
       alert('❌ Código incorrecto');
     }
@@ -200,10 +192,79 @@ function App() {
     else setAcopios(data || []);
   }, []);
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName) return alert('El nombre es obligatorio');
+    if (!placedPos && !editingId) return alert('Falta la ubicación');
+    
+    setSubmitting(true);
+    
+    const rowData = {
+      name: formName,
+      type: 'centro_acopio',
+      needs: formNeeds,
+      address: placedAddress,
+      lat: placedPos?.lat || 0,
+      lng: placedPos?.lng || 0,
+      leader_name: formLeader,
+      leader_phone: formPhone,
+      updated_at: new Date().toISOString()
+    };
+
+    if (editingId) {
+      if (!isDemoMode && supabase) {
+        const updateData = { ...rowData };
+        delete (updateData as any).lat;
+        delete (updateData as any).lng;
+        delete (updateData as any).address;
+        const { error } = await supabase.from('locations').update(updateData).eq('id', editingId);
+        if (error) alert('Error actualizando: ' + error.message);
+      } else {
+        setAcopios(prev => prev.map(a => a.id === editingId ? { ...a, ...rowData, lat: a.lat, lng: a.lng, address: a.address } : a));
+      }
+    } else {
+      if (!isDemoMode && supabase) {
+        const { error } = await supabase.from('locations').insert([rowData]);
+        if (error) alert('Error guardando: ' + error.message);
+      } else {
+        setAcopios(prev => [...prev, { id: 'a' + Date.now(), ...rowData } as any]);
+      }
+    }
+    
+    setSubmitting(false);
+    setShowForm(false);
+    setPlacingMode(false);
+    setPlacedPos(null);
+    setEditingId(null);
+    setSelectedLoc(null);
+    await fetchAcopios();
+  };
+
+  const startEditing = (loc: LocationRow) => {
+    setEditingId(loc.id);
+    setFormName(loc.name);
+    setFormNeeds(loc.needs || '');
+    setFormLeader(loc.leader_name || '');
+    setFormPhone(loc.leader_phone || '');
+    setPlacedPos({ lat: loc.lat, lng: loc.lng });
+    setPlacedAddress(loc.address || '');
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Seguro que deseas eliminar este punto de forma permanente?')) return;
+    if (!isDemoMode && supabase) {
+      const { error } = await supabase.from('locations').delete().eq('id', id);
+      if (error) alert('Error eliminando: ' + error.message);
+    } else {
+      setAcopios(prev => prev.filter(a => a.id !== id));
+    }
+    setSelectedLoc(null);
+    await fetchAcopios();
+  };
+
   useEffect(() => {
     fetchAcopios();
-    
-    // Configurar suscripción en tiempo real a Supabase
     let channel: any;
     if (!isDemoMode && supabase) {
       channel = supabase
@@ -239,10 +300,9 @@ function App() {
   }, [fetchAcopios]);
 
   const allHospitals = useMemo(() => {
-    // Unir los hospitales quemados (HOSPITALS) con los descargados dinámicamente (osmHospitals)
     const map = new Map();
     HOSPITALS.forEach(h => map.set(h.id, h));
-    osmHospitals.forEach(h => map.set(h.id, h)); // Sobrescribe si por casualidad choca el ID, pero los OSM tienen prefijo "osm-"
+    osmHospitals.forEach(h => map.set(h.id, h));
     return Array.from(map.values());
   }, [osmHospitals]);
 
@@ -294,10 +354,10 @@ function App() {
     });
   };
 
-  const startPlacing = () => { setShowLocationChooser(true); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setPlacingMode(false); };
+  const startPlacing = () => { setShowLocationChooser(true); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setPlacingMode(false); setEditingId(null); };
   
   const cancelPlacing = () => { 
-    setPlacingMode(false); setShowLocationChooser(false); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setFormName(''); setFormNeeds(''); setFormLeader(''); setFormPhone(''); setFormPhoto(null); 
+    setPlacingMode(false); setShowLocationChooser(false); setPlacedPos(null); setPlacedAddress(''); setShowForm(false); setFormName(''); setFormNeeds(''); setFormLeader(''); setFormPhone(''); setFormPhoto(null); setEditingId(null);
   };
 
   const handleChooseMap = () => {
@@ -306,10 +366,7 @@ function App() {
   };
 
   const handleChooseGPS = () => {
-    if (!navigator.geolocation) {
-      alert("Tu navegador no soporta GPS");
-      return;
-    }
+    if (!navigator.geolocation) { alert("Tu navegador no soporta GPS"); return; }
     setShowLocationChooser(false);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -317,18 +374,15 @@ function App() {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setPlacedPos({ lat, lng });
-        
-        // Reverse geocode
         const addr = await reverseGeocode(lat, lng);
         setPlacedAddress(addr || `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-        
         setLocating(false);
         setShowForm(true);
       },
       () => {
         setLocating(false);
-        alert("No pudimos obtener tu ubicación actual. Asegúrate de tener el GPS encendido o darnos permisos.");
-        handleChooseMap(); // Fallback to map
+        alert("No pudimos obtener tu ubicación actual.");
+        handleChooseMap();
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
@@ -348,41 +402,6 @@ function App() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName || !placedPos) return;
-
-    const photoUrl = formPhoto ? URL.createObjectURL(formPhoto) : undefined;
-
-    const newAcopio: LocationRow = {
-      id: `local-${Date.now()}`, name: formName, type: 'centro_acopio',
-      needs: formNeeds, address: placedAddress, 
-      leader_name: formLeader, leader_phone: formPhone,
-      photo_url: photoUrl, lat: placedPos.lat, lng: placedPos.lng,
-      updated_at: new Date().toISOString(),
-    };
-    
-    setSubmitting(true);
-    
-    if (!isDemoMode && supabase) {
-      const session = await supabase.auth.getSession();
-      const { error } = await supabase.from('locations').insert([{
-        name: newAcopio.name, type: 'centro_acopio', needs: newAcopio.needs,
-        leader_name: newAcopio.leader_name, leader_phone: newAcopio.leader_phone,
-        lat: newAcopio.lat, lng: newAcopio.lng,
-        created_by: session?.data?.session?.user?.id,
-      }]);
-      if (error) { alert(error.message); setSubmitting(false); return; }
-      await fetchAcopios();
-    } else {
-      setAcopios((prev) => [...prev, newAcopio]);
-    }
-    
-    cancelPlacing();
-    setSubmitting(false);
-    setFlyTarget({ lat: newAcopio.lat, lng: newAcopio.lng, zoom: 15 });
-  };
-
   const fmtDist = (d: number | null) => {
     if (d === null) return '';
     return d < 1 ? `${Math.round(d * 1000)}m` : `${d.toFixed(1)}km`;
@@ -391,12 +410,6 @@ function App() {
   const openDetails = (loc: LocationRow) => {
     setShowList(false);
     setSelectedLoc(loc);
-  };
-
-  // WhatsApp formatter
-  const formatWaLink = (phone: string) => {
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    return `https://wa.me/${cleanPhone}`;
   };
 
   return (
@@ -408,7 +421,6 @@ function App() {
         </div>
       )}
 
-      {/* PLACING BANNER */}
       {placingMode && !showForm && (
         <div className="placing-banner">
           <span>👆 Toca el mapa para colocar el punto</span>
@@ -445,11 +457,8 @@ function App() {
                     <div className="popup-body">
                       <div className="popup-name">{loc.type === 'hospital' ? '🏥' : loc.type === 'iglesia' ? '⛪' : '📦'} {loc.name}</div>
                       <div className="popup-type">{loc.type === 'hospital' ? 'Hospital' : loc.type === 'iglesia' ? 'Iglesia' : 'Centro de Acopio'}</div>
-                      {loc.address && <div className="popup-addr">📍 {loc.address}</div>}
                     </div>
-                    <button className="popup-go" onClick={() => openDetails(loc)}>
-                      Ver más info
-                    </button>
+                    <button className="popup-go" onClick={() => openDetails(loc)}>Ver más info</button>
                   </div>
                 </Popup>
               </Marker>
@@ -465,12 +474,8 @@ function App() {
             <div className="brand-text">Acopio<span>Venezuela</span></div>
           </div>
           <div className="top-actions">
-            {!isUnlocked && (
-              <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes">🔒</button>
-            )}
-            {isUnlocked && (
-              <button className="btn-pill btn-add-top" onClick={startPlacing}>➕ <span>Agregar</span></button>
-            )}
+            {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes">🔒</button>}
+            {isUnlocked && <button className="btn-pill btn-add-top" onClick={startPlacing}>➕ <span>Agregar</span></button>}
             <button className="btn-pill" onClick={() => setShowList(true)}>📋 <span>Ver lista</span></button>
             <button className="btn-circle" onClick={handleLocate} title="Mi ubicación">📍</button>
             <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona">❓</button>
@@ -499,20 +504,12 @@ function App() {
         </div>
       )}
 
-      {/* AUTH MODAL */}
       {showAuthModal && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}>
           <div className="auth-card">
             <h2>🔒 Acceso a Líderes</h2>
-            <p>Ingresa el código de acceso para poder registrar centros de acopio.</p>
             <form onSubmit={handleAuthSubmit}>
-              <input 
-                type="password" 
-                value={authCode} 
-                onChange={(e) => setAuthCode(e.target.value)} 
-                placeholder="Código de acceso..." 
-                autoFocus 
-              />
+              <input type="password" value={authCode} onChange={(e) => setAuthCode(e.target.value)} placeholder="Código de acceso..." autoFocus />
               <div className="auth-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowAuthModal(false)}>Cancelar</button>
                 <button type="submit" className="btn-submit-auth">Verificar</button>
@@ -522,218 +519,104 @@ function App() {
         </div>
       )}
 
-      {/* HELP MODAL */}
       {showHelpModal && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowHelpModal(false); }}>
           <div className="modal-sheet help-sheet">
-            <div className="list-handle" />
-            <div className="modal-header">
-              <h2>❓ ¿Cómo funciona?</h2>
-              <button className="modal-close" onClick={() => setShowHelpModal(false)}>✕</button>
-            </div>
+            <div className="modal-header"><h2>❓ ¿Cómo funciona?</h2><button className="modal-close" onClick={() => setShowHelpModal(false)}>✕</button></div>
             <div className="help-body">
-              <div className="help-step">
-                <span className="help-step-icon">🏥 / ⛪</span>
-                <p><strong>Hospitales e Iglesias:</strong> Se cargan automáticamente del mapa oficial libre de Venezuela al mover la pantalla. No tienes que agregarlos.</p>
-              </div>
-              <div className="help-step">
-                <span className="help-step-icon">📦</span>
-                <p><strong>Centros de Acopio (Rojos):</strong> Son los puntos de ayuda activos. Toca cualquiera para ver qué insumos necesitan y su teléfono.</p>
-              </div>
-              <div className="help-step">
-                <span className="help-step-icon">📞 / 💬</span>
-                <p><strong>Contacto Directo:</strong> Puedes llamar al líder del centro o enviarle un WhatsApp directo en 1 clic para coordinar tu entrega.</p>
-              </div>
-              <div className="help-step">
-                <span className="help-step-icon">🔒</span>
-                <p><strong>Agregar Puntos:</strong> Exclusivo para médicos, sacerdotes y líderes con código de autorización. Toca el candado e ingresa el código.</p>
-              </div>
+              <p>Carga los puntos de ayuda de Venezuela. Los administradores pueden gestionar centros.</p>
               <button className="help-close-btn" onClick={() => setShowHelpModal(false)}>Entendido</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* LIST PANEL */}
       {showList && (
         <div className="list-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowList(false); }}>
           <div className="list-sheet">
-            <div className="list-handle" />
-            <div className="list-header">
-              <h2>📋 {filter === 'all' ? 'Todos los puntos' : filter === 'hospital' ? 'Hospitales' : filter === 'iglesia' ? 'Iglesias' : 'Centros de Acopio'} cercanos</h2>
-              <button className="list-close" onClick={() => setShowList(false)}>✕</button>
-            </div>
-            
-            <div className="list-search-container">
-              <input 
-                type="text" 
-                className="list-search-input" 
-                placeholder="🔍 Buscar por nombre o dirección..." 
-                value={listSearch}
-                onChange={(e) => setListSearch(e.target.value)}
-              />
-            </div>
-
+            <div className="list-header"><h2>📋 Lista de puntos</h2><button className="list-close" onClick={() => setShowList(false)}>✕</button></div>
+            <div className="list-search-container"><input type="text" placeholder="🔍 Buscar..." value={listSearch} onChange={(e) => setListSearch(e.target.value)} /></div>
             <div className="list-body">
-              {listItems.length === 0 && <div className="list-empty">No se encontraron resultados</div>}
-              {listItems.map((loc) => {
-                const dist = distTo(loc.lat, loc.lng);
-                return (
-                  <div key={loc.id} className="list-item" onClick={() => openDetails(loc)}>
-                    <div className={`list-item-icon ${loc.type}`}>
-                      {loc.type === 'hospital' ? '🏥' : loc.type === 'iglesia' ? '⛪' : '📦'}
-                    </div>
-                    <div className="list-item-info">
-                      <div className="list-item-name">{loc.name}</div>
-                      <div className="list-item-addr">{loc.address || (loc.type === 'hospital' ? 'Hospital' : loc.type === 'iglesia' ? 'Iglesia' : 'Centro de Acopio')}</div>
-                      {dist !== null && <div className="list-item-dist">📏 {fmtDist(dist)}</div>}
-                    </div>
-                    <button className="list-item-go">Info</button>
+              {listItems.map((loc) => (
+                <div key={loc.id} className="list-item" onClick={() => openDetails(loc)}>
+                  <div className={`list-item-icon ${loc.type}`}>{loc.type === 'hospital' ? '🏥' : loc.type === 'iglesia' ? '⛪' : '📦'}</div>
+                  <div className="list-item-info">
+                    <div className="list-item-name">{loc.name}</div>
+                    <div className="list-item-addr">{loc.address || 'Ubicación'}</div>
                   </div>
-                );
-              })}
-
+                  <button className="list-item-go">Info</button>
+                </div>
+              ))}
               <div className="powered-by">Powered by <strong>signalNote</strong></div>
             </div>
           </div>
         </div>
       )}
 
-      {/* DETAILS MODAL */}
       {selectedLoc && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setSelectedLoc(null); }}>
           <div className="modal-sheet details-sheet">
-            <div className="list-handle" />
-            
-            {/* Header Image */}
-            {selectedLoc.photo_url ? (
-              <div className="details-header-image" style={{ backgroundImage: `url(${selectedLoc.photo_url})` }}>
-                <button className="details-close-abs" onClick={() => setSelectedLoc(null)}>✕</button>
-              </div>
-            ) : (
-              <div className="details-header-color">
-                <button className="details-close-abs" onClick={() => setSelectedLoc(null)}>✕</button>
-              </div>
-            )}
-
             <div className="details-body">
-              <div className="details-type">{selectedLoc.type === 'hospital' ? '🏥 Hospital' : selectedLoc.type === 'iglesia' ? '⛪ Iglesia' : '📦 Centro de Acopio'}</div>
               <h2 className="details-title">{selectedLoc.name}</h2>
-              {selectedLoc.address && <p className="details-addr">📍 {selectedLoc.address}</p>}
-              {distTo(selectedLoc.lat, selectedLoc.lng) !== null && (
-                <div className="details-dist">📏 A {fmtDist(distTo(selectedLoc.lat, selectedLoc.lng))} de ti</div>
-              )}
-
-              {/* Leader Info & Phone Buttons */}
+              <p className="details-addr">📍 {selectedLoc.address}</p>
               {(selectedLoc.leader_name || selectedLoc.leader_phone) && (
                 <div className="details-leader">
-                  <strong>👤 Contacto / Líder:</strong> {selectedLoc.leader_name || 'Sin nombre'}
-                  
+                  <strong>👤 Contacto:</strong> {selectedLoc.leader_name}
                   {selectedLoc.leader_phone && (
                     <div className="contact-buttons">
-                      <button className="btn-call" onClick={() => window.open(`tel:${selectedLoc.leader_phone}`)}>
-                        📞 Llamar
-                      </button>
-                      <button className="btn-wa" onClick={() => window.open(formatWaLink(selectedLoc.leader_phone!), '_blank')}>
-                        💬 WhatsApp
-                      </button>
+                      <a href={`tel:${selectedLoc.leader_phone.replace(/\D/g, '')}`} className="btn-call">📞 Llamar</a>
+                      <a href={`https://wa.me/${selectedLoc.leader_phone.replace(/\D/g, '')}`} target="_blank" className="btn-wa">💬 WhatsApp</a>
                     </div>
                   )}
                 </div>
               )}
-
-              {selectedLoc.needs && (
-                <div className="details-needs">
-                  <strong>📝 ¿Qué se necesita?</strong>
-                  <p>{selectedLoc.needs}</p>
+              {selectedLoc.needs && <div className="details-needs"><strong>📝 Necesidades:</strong><p>{selectedLoc.needs}</p></div>}
+              {isUnlocked && selectedLoc.type === 'centro_acopio' && (
+                <div className="admin-actions">
+                  <button className="btn-admin-edit" onClick={() => startEditing(selectedLoc)}>✏️ Editar</button>
+                  <button className="btn-admin-delete" onClick={() => handleDelete(selectedLoc.id)}>🗑️ Borrar</button>
                 </div>
               )}
-
-              <button className="details-go-btn" onClick={() => window.open(gmapsUrl(userPos?.lat ?? null, userPos?.lng ?? null, selectedLoc.lat, selectedLoc.lng), '_blank')}>
-                🗺️ Abrir ruta en Google Maps
-              </button>
+              <button className="details-go-btn" onClick={() => window.open(gmapsUrl(userPos?.lat ?? null, userPos?.lng ?? null, selectedLoc.lat, selectedLoc.lng), '_blank')}>🗺️ Google Maps</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* LOCATION CHOOSER MODAL */}
       {showLocationChooser && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowLocationChooser(false); }}>
           <div className="modal-sheet chooser-sheet">
-            <div className="list-handle" />
-            <div className="modal-header" style={{ paddingBottom: '8px' }}>
-              <h2>¿Dónde está el centro?</h2>
-              <button className="modal-close" onClick={() => setShowLocationChooser(false)}>✕</button>
-            </div>
+            <div className="modal-header"><h2>¿Dónde está el centro?</h2><button className="modal-close" onClick={() => setShowLocationChooser(false)}>✕</button></div>
             <div className="chooser-body">
-              <button className="chooser-btn gps" onClick={handleChooseGPS}>
-                <span className="chooser-icon">📍</span>
-                <div className="chooser-text">
-                  <strong>Usar mi ubicación actual</strong>
-                  <span>Es más rápido y preciso usando el GPS</span>
-                </div>
-              </button>
-              <div className="chooser-or">O</div>
-              <button className="chooser-btn map" onClick={handleChooseMap}>
-                <span className="chooser-icon">👆</span>
-                <div className="chooser-text">
-                  <strong>Seleccionar en el mapa a mano</strong>
-                  <span>Toca el punto exacto en el mapa tú mismo</span>
-                </div>
-              </button>
+              <button className="chooser-btn" onClick={handleChooseGPS}>📍 Usar ubicación actual</button>
+              <button className="chooser-btn" onClick={handleChooseMap}>👆 Seleccionar en mapa</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ADD FORM */}
-      {showForm && placedPos && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) cancelPlacing(); }}>
+      {showForm && (
+        <div className="modal-overlay">
           <div className="modal-sheet">
-            <div className="list-handle" />
             <div className="modal-header">
-              <h2>📦 Nuevo Centro de Acopio</h2>
-              <button className="modal-close" onClick={cancelPlacing}>✕</button>
+              <h2>{editingId ? '✏️ Editar Acopio' : '📦 Nuevo Centro'}</h2>
+              <button className="modal-close" onClick={() => { setShowForm(false); setEditingId(null); }}>✕</button>
             </div>
-            <form className="modal-body" onSubmit={handleSubmit}>
-              <div className="selected-location">
-                <span className="selected-location-icon">📍</span>
-                <div>
-                  <div className="selected-location-label">Ubicación seleccionada</div>
-                  <div className="selected-location-addr">{placedAddress || 'Obteniendo dirección...'}</div>
-                </div>
-                <button type="button" className="selected-location-change" onClick={() => { setShowForm(false); setPlacedPos(null); }}>Cambiar</button>
-              </div>
-
+            <form className="form-body" onSubmit={handleFormSubmit}>
               <div className="field">
                 <label>Nombre del lugar *</label>
-                <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Ej: Iglesia San José..." required />
+                <input value={formName} onChange={(e) => setFormName(e.target.value)} required />
               </div>
-              
-              <div className="field-row">
-                <div className="field" style={{ flex: 1 }}>
-                  <label>👤 Nombre Contacto</label>
-                  <input value={formLeader} onChange={(e) => setFormLeader(e.target.value)} placeholder="Ej: María Pérez" />
-                </div>
-                <div className="field" style={{ flex: 1 }}>
-                  <label>📞 Teléfono</label>
-                  <input type="tel" value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="Ej: 0414..." />
-                </div>
-              </div>
-
               <div className="field">
-                <label>📝 ¿Qué se necesita? (Opcional)</label>
-                <textarea value={formNeeds} onChange={(e) => setFormNeeds(e.target.value)} placeholder="Agua, comida, medicinas, ropa..." />
+                <label>📞 Teléfono</label>
+                <input value={formPhone} onChange={(e) => setFormPhone(e.target.value)} />
               </div>
-              
               <div className="field">
-                <label>📸 Foto del lugar (Opcional)</label>
-                <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ padding: '8px' }} />
+                <label>📝 ¿Qué se necesita?</label>
+                <textarea value={formNeeds} onChange={(e) => setFormNeeds(e.target.value)} />
               </div>
-
-              <button type="submit" className="btn-submit" disabled={submitting || !formName}>
-                {submitting ? '⏳ Guardando...' : '✅ Confirmar y agregar'}
+              <button type="submit" className="btn-submit" disabled={submitting}>
+                {submitting ? 'Guardando...' : (editingId ? '💾 Guardar Cambios' : '✅ Publicar')}
               </button>
             </form>
           </div>

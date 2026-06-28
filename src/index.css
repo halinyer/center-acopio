@@ -458,6 +458,20 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 .btn-call:active { opacity: 0.8; }
 .btn-wa:active { opacity: 0.8; }
 
+/* ========== ADMIN ACTIONS ========== */
+.admin-actions { display: flex; gap: 10px; margin-top: 10px; }
+.btn-admin-edit {
+  flex: 1; padding: 10px; background: var(--gray-100); color: var(--gray-800); border: none;
+  border-radius: var(--radius-sm); font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;
+}
+.btn-admin-delete {
+  flex: 1; padding: 10px; background: #fef2f2; color: var(--red); border: none;
+  border-radius: var(--radius-sm); font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;
+}
+.btn-admin-edit:active, .btn-admin-delete:active { opacity: 0.8; }
+
 .powered-by {
   margin-top: 24px; text-align: center; font-size: 11px;
   color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px;
