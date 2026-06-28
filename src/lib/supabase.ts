@@ -57,6 +57,8 @@ export const HOSPITALS: LocationRow[] = [
   { id: 'h5', name: 'Clínica Santa Sofía', type: 'hospital', needs: 'Medicamentos pediátricos', address: 'El Cafetal, Caracas', lat: 10.4826, lng: -66.8725, updated_at: new Date().toISOString() },
   { id: 'h10', name: 'Hospital Central de Maracay', type: 'hospital', needs: 'Medicamentos, generadores', address: 'Maracay, Aragua', lat: 10.2472, lng: -67.5967, updated_at: new Date().toISOString() },
   { id: 'h11', name: 'Hospital Central de Valencia', type: 'hospital', needs: 'Insumos de emergencia', address: 'Valencia, Carabobo', lat: 10.1783, lng: -68.0050, updated_at: new Date().toISOString() },
+  { id: 'ig1', name: 'Iglesia San Pedro', type: 'iglesia', needs: 'Ropa, carpas, colchonetas', address: 'Los Chaguaramos, Caracas', lat: 10.4977, lng: -66.8889, leader_name: 'Padre José', updated_at: new Date().toISOString() },
+  { id: 'ig2', name: 'Catedral de Caracas', type: 'iglesia', needs: 'Comida, agua potable', address: 'Plaza Bolívar, Caracas', lat: 10.5056, lng: -66.9146, updated_at: new Date().toISOString() },
 ];
 
 export const DEMO_ACOPIOS: LocationRow[] = [

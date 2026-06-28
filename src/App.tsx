@@ -74,66 +74,79 @@ function MapResizer() {
   return null;
 }
 
-// COMPONENTE: Carga dinámica de hospitales al mover el mapa
+// COMPONENTE: Carga dinámica de hospitales e iglesias al mover el mapa
 function DynamicHospitals({ setOsmHospitals }: { setOsmHospitals: React.Dispatch<React.SetStateAction<LocationRow[]>> }) {
-  const map = useMapEvents({
-    moveend: async () => {
-      // Evitar sobrecargar si el zoom es muy lejano
-      if (map.getZoom() < 12) return; 
-      
-      const bounds = map.getBounds();
-      const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-      
-      // Query a Overpass API para hospitales, clínicas e iglesias cristianas
-      const query = `[out:json][timeout:10];(
-        node["amenity"~"hospital|clinic"](${bbox});
-        way["amenity"~"hospital|clinic"](${bbox});
+  const map = useMap();
+
+  const fetchOsm = useCallback(async () => {
+    const zoom = map.getZoom();
+    if (zoom < 13) return; // No cargar si está muy lejos
+    const bounds = map.getBounds();
+    const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+    
+    // Consulta a Overpass API para buscar hospitales, clínicas y lugares de culto cristianos (iglesias)
+    const query = `
+      [out:json][timeout:15];
+      (
+        node["amenity"="hospital"](${bbox});
+        way["amenity"="hospital"](${bbox});
+        node["amenity"="clinic"](${bbox});
+        way["amenity"="clinic"](${bbox});
         node["amenity"="place_of_worship"]["religion"="christian"](${bbox});
         way["amenity"="place_of_worship"]["religion"="christian"](${bbox});
       );out center;`;
-      const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json();
       
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
+      const newHospitals: LocationRow[] = data.elements.map((el: any) => {
+        const lat = el.lat || el.center?.lat;
+        const lon = el.lon || el.center?.lon;
         
-        const newHospitals: LocationRow[] = data.elements.map((el: any) => {
-          const lat = el.lat || el.center?.lat;
-          const lon = el.lon || el.center?.lon;
-          
-          let name = el.tags?.name || 'Lugar sin nombre';
-          let type: 'hospital' | 'iglesia' = 'hospital';
-          
-          if (el.tags?.amenity === 'place_of_worship') {
-            type = 'iglesia';
-            if (!el.tags?.name) name = 'Iglesia / Parroquia';
-          } else if (!el.tags?.name) {
-            name = el.tags?.amenity === 'clinic' ? 'Clínica' : 'Hospital';
-          }
-          
-          return {
-            id: `osm-${el.id}`,
-            name: name,
-            type: type,
-            needs: type === 'iglesia' ? 'Posible centro de acopio - Contactar líderes' : 'Contactar para consultar necesidades',
-            address: 'Ubicación importada del mapa',
-            lat: lat,
-            lng: lon,
-            updated_at: new Date().toISOString()
-          };
-        });
+        let name = el.tags?.name || 'Lugar sin nombre';
+        let type: 'hospital' | 'iglesia' = 'hospital';
+        
+        if (el.tags?.amenity === 'place_of_worship') {
+          type = 'iglesia';
+          if (!el.tags?.name) name = 'Iglesia / Parroquia';
+        } else if (!el.tags?.name) {
+          name = el.tags?.amenity === 'clinic' ? 'Clínica' : 'Hospital';
+        }
+        
+        return {
+          id: `osm-${el.id}`,
+          name: name,
+          type: type,
+          needs: type === 'iglesia' ? 'Posible centro de acopio - Contactar líderes' : 'Contactar para consultar necesidades',
+          address: 'Ubicación importada del mapa',
+          lat: lat,
+          lng: lon,
+          updated_at: new Date().toISOString()
+        };
+      });
 
-        // Guardamos los hospitales evitando duplicados por ID
-        setOsmHospitals(prev => {
-          const map = new Map(prev.map(h => [h.id, h]));
-          newHospitals.forEach(h => map.set(h.id, h));
-          return Array.from(map.values());
-        });
-      } catch (err) {
-        console.error('Error cargando hospitales OSM:', err);
-      }
+      // Guardamos los lugares evitando duplicados por ID
+      setOsmHospitals(prev => {
+        const map = new Map(prev.map(h => [h.id, h]));
+        newHospitals.forEach(h => map.set(h.id, h));
+        return Array.from(map.values());
+      });
+    } catch (err) {
+      console.error('Error cargando datos OSM:', err);
     }
+  }, [map, setOsmHospitals]);
+
+  useMapEvents({
+    moveend: fetchOsm
   });
+
+  useEffect(() => {
+    fetchOsm();
+  }, [fetchOsm]);
+
   return null;
 }
 
