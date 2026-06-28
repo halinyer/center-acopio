@@ -435,7 +435,30 @@ function App() {
     cancelPlacing();
     setSubmitting(false);
     if (!editingId && rowData.lat) setFlyTarget({ lat: rowData.lat, lng: rowData.lng, zoom: 15 });
-    setEditingId(null);
+    await fetchAcopios();
+  };
+
+  const startEditing = (loc: LocationRow) => {
+    setEditingId(loc.id);
+    setFormName(loc.name);
+    setFormType(loc.type as any);
+    setFormNeeds(loc.needs || '');
+    setFormLeader(loc.leader_name || '');
+    setFormPhone(loc.leader_phone || '');
+    setPlacedPos({ lat: loc.lat, lng: loc.lng });
+    setPlacedAddress(loc.address || '');
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Seguro que deseas ocultar este punto? Desaparecerá del mapa pero quedará guardado para tu revisión.')) return;
+    if (!isDemoMode && supabase) {
+      const { error } = await supabase.rpc('delete_location_secure', { p_id: id, p_auth_code: authCode });
+      if (error) { alert('Error deshabilitando: ' + error.message); return; }
+    } else {
+      setAcopios(prev => prev.filter(a => a.id !== id));
+    }
+    setSelectedLoc(null);
     await fetchAcopios();
   };
 
