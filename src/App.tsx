@@ -97,7 +97,7 @@ function App() {
 
   useEffect(() => { userPosRef.current = userPos; }, [userPos]);
   useEffect(() => { acopiosRef.current = acopios; }, [acopios]);
-  const [filter, setFilter] = useState<'all' | 'hospital' | 'acopio' | 'iglesia'>('all');
+
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const [locating, setLocating] = useState(true);
 
@@ -387,11 +387,7 @@ function App() {
   }, [fetchAcopios, fetchSocialData, deviceId]);
 
   const allLocations = useMemo(() => acopios, [acopios]);
-  const filtered = useMemo(() => {
-    if (filter === 'all') return allLocations;
-    if (filter === 'acopio') return allLocations.filter(loc => loc.type === 'centro_acopio');
-    return allLocations.filter(loc => loc.type === filter);
-  }, [filter, allLocations]);
+  const filtered = allLocations;
 
   const distTo = useCallback((lat: number, lng: number) =>
     userPos ? getDistanceKm(userPos.lat, userPos.lng, lat, lng) : null, [userPos]);
@@ -697,14 +693,7 @@ function App() {
         </div>
       )}
 
-      {!placingMode && (
-        <div className="bottom-bar-wrapper">
-          <div className="bottom-bar-scroll">
-            <button className={`filter-pill ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}><MapIcon size={16}/> Todos</button>
-            <button className={`filter-pill ${filter === 'acopio' ? 'active' : ''}`} onClick={() => setFilter('acopio')}><Package size={16}/> Acopio</button>
-          </div>
-        </div>
-      )}
+
 
       {/* AUTH MODAL */}
       {showAuthModal && (
@@ -767,7 +756,7 @@ function App() {
           <div className="list-sheet">
             <div className="list-handle" />
             <div className="list-header">
-              <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><ListIcon size={20} /> {filter === 'all' ? 'Todos los puntos' : filter === 'hospital' ? 'Hospitales' : filter === 'iglesia' ? 'Iglesias' : 'Centros de Acopio'} cercanos</h2>
+              <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><ListIcon size={20} /> Todos los puntos cercanos</h2>
               <button className="list-close" onClick={() => setShowList(false)}>✕</button>
             </div>
             
@@ -1031,13 +1020,7 @@ function App() {
                 <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Ej: Iglesia San José..." required />
               </div>
 
-              <div className="field">
-                <label>Tipo de lugar</label>
-                <select value={formType} onChange={(e) => setFormType(e.target.value as any)}>
-                  <option value="centro_acopio">📦 Centro de Acopio</option>
-                  <option value="iglesia">⛪ Iglesia / Parroquia</option>
-                </select>
-              </div>
+
               
               <div className="field-row">
                 <div className="field" style={{ flex: 1 }}>
