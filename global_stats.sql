@@ -1,3 +1,6 @@
+-- 0. Activar la extensión necesaria para programar tareas
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
 -- 1. Crear la vista que consolida la data táctica en una sola fila
 CREATE MATERIALIZED VIEW IF NOT EXISTS public.global_stats AS
 SELECT 

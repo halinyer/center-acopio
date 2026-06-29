@@ -361,9 +361,9 @@ function App() {
         })
         .subscribe();
       telemetryChannel = supabase
-        .channel('public:telemetry')
-        .on('broadcast', { event: 'pulse' }, (payload) => {
-          setNetworkPulse(payload.payload.message);
+        .channel('realtime:public:telemetry')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'telemetry_events' }, (payload) => {
+          setNetworkPulse(payload.new.message);
         })
         .subscribe();
     }
