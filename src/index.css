@@ -107,10 +107,10 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 
 /* ========== NEAREST CHIP — Elegante y centrado abajo ========== */
 .nearest-chip {
-  position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%);
   z-index: 1000;
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 24px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(0,0,0,0.05);
@@ -866,26 +866,25 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 
 /* ========== BOTTOM NAVIGATION BAR (Option A) ========== */
 .bottom-nav-bar {
-  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1000;
-  display: flex; align-items: stretch; gap: 8px;
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
+  display: flex; align-items: stretch; gap: 4px;
   background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
-  padding: 8px; border-radius: 40px; border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  padding: 6px; border-radius: 40px; border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.15);
   width: auto; max-width: 95vw;
 }
 
 .nav-btn {
   background: transparent; border: none; padding: 8px 16px; border-radius: 30px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-  color: var(--gray-600); cursor: pointer; transition: all 0.2s;
-  min-width: 80px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: var(--gray-500); cursor: pointer; transition: all 0.2s;
+  min-width: 76px;
 }
-.nav-btn span { font-size: 11px; font-weight: 700; }
+.nav-btn span { font-size: 11px; font-weight: 600; }
 .nav-btn:active { transform: scale(0.95); background: var(--gray-100); }
 
 .nav-btn.primary {
-  background: var(--gray-900); color: white; padding: 8px 24px;
+  background: var(--gray-900); color: white;
 }
 .nav-btn.primary:active { background: black; }
-.nav-btn.primary span { font-size: 13px; font-weight: 800; }
-.nav-btn.primary .lucide { margin-bottom: 2px; }
+.nav-btn.primary span { font-weight: 700; }
