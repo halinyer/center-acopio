@@ -567,9 +567,20 @@ function App() {
   return (
     <div className="app">
       {locating && (
-        <div className="loading-overlay">
-          <div className="loading-spinner" />
-          <div className="loading-text">Obteniendo tu ubicación...</div>
+        <div className="loading-overlay" style={{ padding: '32px', textAlign: 'center', background: 'var(--white)' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'pulse 1.5s infinite' }}>🇻🇪</div>
+          <h3 style={{ margin: '0 0 12px 0', color: 'var(--gray-900)', fontSize: '22px', fontWeight: '800' }}>No estás solo.</h3>
+          <p style={{ margin: '0 0 24px 0', color: 'var(--gray-600)', fontSize: '15px', lineHeight: '1.5', maxWidth: '280px' }}>
+            Conectando con tu comunidad y ubicando los centros de apoyo a tu alrededor...
+          </p>
+          <div className="loading-spinner" style={{ margin: '0 auto', borderTopColor: 'var(--primary)' }} />
+          <style>{`
+            @keyframes pulse {
+              0% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.1); opacity: 0.8; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+          `}</style>
         </div>
       )}
 
