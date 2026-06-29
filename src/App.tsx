@@ -201,6 +201,7 @@ function App() {
   // Toast & History — con cache por dispositivo
   const [activeToast, setActiveToast] = useState<{title: string, desc: string, id: number, locId?: string} | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifFilter, setNotifFilter] = useState('Todos');
   const [notificationsHistory, setNotificationsHistory] = useState<{id: number, title: string, desc: string, time: string, locId?: string, read: boolean}[]>(() => {
     try {
       const cached = localStorage.getItem('notif_history');
@@ -255,6 +256,10 @@ function App() {
   };
   
   const unreadCount = notificationsHistory.filter(n => !n.read).length;
+
+  const markAllAsRead = () => {
+    setNotificationsHistory(prev => prev.map(n => ({ ...n, read: true })));
+  };
 
   // Check auth status on mount
   useEffect(() => {
@@ -797,12 +802,6 @@ function App() {
           <div className="chip-info">
             <div className="chip-name">{nearest.location.name}</div>
             <div className="chip-dist" style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Más cercano · {fmtDist(nearest.distance)}</div>
-            {nearest.location.needs && <div className="chip-needs">⚠️ {nearest.location.needs}</div>}
-            {nearest.location.expires_at && (
-              <div className={`expiry-alert ${new Date(nearest.location.expires_at).getTime() - Date.now() < 86400000 ? 'urgent' : ''}`}>
-                {new Date(nearest.location.expires_at).getTime() - Date.now() < 86400000 ? '🔴 Cierra pronto' : '⏳ Activo'}
-              </div>
-            )}
           </div>
           <button className="chip-close" onClick={(e) => { e.stopPropagation(); ignoreLocation(nearest.location.id); }}>✕</button>
         </div>
@@ -1251,40 +1250,57 @@ function App() {
       )}
 
       {/* NOTIFICATIONS HISTORY MODAL */}
-      <SwipeableSheet isOpen={showNotifications} onClose={() => setShowNotifications(false)} className="notifications-sheet">
+      <SwipeableSheet isOpen={showNotifications} onClose={() => { setShowNotifications(false); markAllAsRead(); }} className="notifications-sheet">
             <div className="modal-handle" />
             <div className="modal-header" style={{paddingBottom: '8px'}}>
               <h2>Buzón de Notificaciones</h2>
-              <button className="btn-close" onClick={() => setShowNotifications(false)}>✕</button>
+              <button className="btn-close" onClick={() => { setShowNotifications(false); markAllAsRead(); }}>✕</button>
             </div>
             
+            <div className="notif-filters">
+              <button className={`notif-tag ${notifFilter === 'Todos' ? 'active' : ''}`} onClick={() => setNotifFilter('Todos')}>Todos</button>
+              <button className={`notif-tag ${notifFilter === 'Médico' ? 'active' : ''}`} onClick={() => setNotifFilter('Médico')}>🏥 Médico</button>
+              <button className={`notif-tag ${notifFilter === 'Rescate' ? 'active' : ''}`} onClick={() => setNotifFilter('Rescate')}>🚨 Rescate</button>
+              <button className={`notif-tag ${notifFilter === 'Nuevos' ? 'active' : ''}`} onClick={() => setNotifFilter('Nuevos')}>📍 Nuevos</button>
+            </div>
+
             <div style={{overflowY: 'auto', flex: 1}}>
-              {notificationsHistory.length === 0 ? (
-                <div style={{padding: '40px 20px', textAlign: 'center', color: 'var(--gray-500)', fontSize: '14px'}}>
-                  No tienes notificaciones recientes.
-                </div>
-              ) : (
-                notificationsHistory.map(n => (
-                  <div 
-                    key={n.id} 
-                    className={`notification-item ${!n.read ? 'unread' : ''}`}
-                    onClick={() => {
-                      if(n.locId) {
-                        const loc = acopios.find(a => a.id === n.locId);
-                        if(loc) openDetails(loc);
-                      }
-                      setShowNotifications(false);
-                    }}
-                  >
-                    <div className="notification-icon"><Bell size={16} /></div>
-                    <div className="notification-text">
-                      <strong>{n.title}</strong>
-                      <p>{n.desc}</p>
-                      <span>{n.time}</span>
-                    </div>
+              {(() => {
+                const filteredNotifs = notificationsHistory.filter(n => {
+                  if (notifFilter === 'Todos') return true;
+                  if (notifFilter === 'Médico') return n.title.includes('Médico');
+                  if (notifFilter === 'Rescate') return n.title.includes('Rescatista') || n.title.includes('Rescate');
+                  if (notifFilter === 'Nuevos') return n.title.includes('Nuevo');
+                  return true;
+                });
+                return filteredNotifs.length === 0 ? (
+                  <div style={{padding: '40px 20px', textAlign: 'center', color: 'var(--gray-500)', fontSize: '14px'}}>
+                    No tienes notificaciones recientes.
                   </div>
-                ))
-              )}
+                ) : (
+                  filteredNotifs.map(n => (
+                    <div 
+                      key={n.id} 
+                      className={`notification-item ${!n.read ? 'unread' : ''}`}
+                      onClick={() => {
+                        if(n.locId) {
+                          const loc = acopios.find(a => a.id === n.locId);
+                          if(loc) openDetails(loc);
+                        }
+                        setShowNotifications(false);
+                        markAllAsRead();
+                      }}
+                    >
+                      <div className="notification-icon"><Bell size={16} /></div>
+                      <div className="notification-text">
+                        <strong>{n.title}</strong>
+                        <p>{n.desc}</p>
+                        <span>{n.time}</span>
+                      </div>
+                    </div>
+                  ))
+                );
+              })()}
             </div>
       </SwipeableSheet>
 
