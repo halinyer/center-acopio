@@ -715,20 +715,20 @@ function App() {
             </div>
             <div className="help-body">
               <div className="help-step">
-                <span className="help-step-icon"><Hospital size={22} /> / <Church size={22} /></span>
-                <p><strong>Hospitales e Iglesias:</strong> Se cargan automáticamente del mapa oficial libre de Venezuela al mover la pantalla. No tienes que agregarlos.</p>
+                <span className="help-step-icon"><User size={22} /></span>
+                <p><strong>100% Comunitario:</strong> Todo el mapa es construido por personas reales. No hay datos automáticos de mapas, lo que ves es estrictamente lo que la gente ha reportado activo.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon"><Package size={22} /></span>
-                <p><strong>Centros de Acopio (Rojos):</strong> Son los puntos de ayuda activos. Toca cualquiera para ver qué insumos necesitan y su teléfono.</p>
+                <span className="help-step-icon"><Plus size={22} /></span>
+                <p><strong>Agregar Puntos:</strong> Toca el botón <strong>+ Agregar</strong>. Busca una dirección con autocompletado exacto o toca el mapa manualmente. <strong>Usa el selector</strong> para indicar si es un Centro de Acopio o una Iglesia.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon"><Phone size={22} /> / <MessageCircle size={22} /></span>
-                <p><strong>Contacto Directo:</strong> Puedes llamar al líder del centro o enviarle un WhatsApp directo en 1 clic para coordinar tu entrega.</p>
+                <span className="help-step-icon"><MessageCircle size={22} /></span>
+                <p><strong>Reportes y Alertas:</strong> Entra a cualquier punto para comentar qué se necesita o confirmar que sigue activo. Las alertas de Médicos y Rescatistas notifican instantáneamente a 20km.</p>
               </div>
               <div className="help-step">
                 <span className="help-step-icon"><Lock size={22} /></span>
-                <p><strong>Agregar Puntos:</strong> Exclusivo para médicos, sacerdotes y líderes con código de autorización. Toca el candado e ingresa el código.</p>
+                <p><strong>Acceso para Líderes:</strong> La creación de puntos requiere autorización. Toca el candado e ingresa el código para desbloquear las herramientas de mapeo.</p>
               </div>
               <button className="help-close-btn" onClick={() => setShowHelpModal(false)}>Entendido</button>
               
