@@ -143,6 +143,18 @@ function App() {
   // Help modal
   const [showHelpModal, setShowHelpModal] = useState(false);
 
+  // Volunteer Radar (MOCK STATE FOR TEST BRANCH)
+  const [volExpanded, setVolExpanded] = useState(false);
+  const [volFormOpen, setVolFormOpen] = useState(false);
+  const [volName, setVolName] = useState('');
+  const [volRole, setVolRole] = useState('Transporte');
+  const [volPhone, setVolPhone] = useState('');
+  const [hasActiveOffer, setHasActiveOffer] = useState(false);
+  const [mockVolunteers, setMockVolunteers] = useState([
+    {id: 1, name: 'Carlos', role: 'Transporte', status: 'pending', isVeterano: false},
+    {id: 2, name: 'María', role: 'Médico', status: 'matched', isVeterano: true}
+  ]);
+
   // Modals
   const [showList, setShowList] = useState(false);
   const [listSearch, setListSearch] = useState('');
@@ -835,6 +847,83 @@ function App() {
                 <div className="details-needs">
                   <strong style={{display:'flex', alignItems:'center', gap:'4px'}}><ListIcon size={16} /> ¿Qué se necesita?</strong>
                   <p>{selectedLoc.needs}</p>
+                </div>
+              )}
+
+              {/* VOLUNTEER RADAR MOCK (TEST BRANCH) */}
+              <div className="volunteer-radar-section" style={{ background: 'var(--gray-50)', padding: '12px', borderRadius: '8px', marginTop: '16px', border: '1px solid var(--gray-200)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button 
+                    style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: hasActiveOffer ? 0.6 : 1 }}
+                    onClick={() => {
+                      if (hasActiveOffer) return;
+                      setVolFormOpen(true);
+                    }}
+                    disabled={hasActiveOffer}
+                  >
+                    ✋ {hasActiveOffer ? 'Oferta Activa' : 'Ofrecer Ayuda'}
+                  </button>
+                  <div 
+                    style={{ fontSize: '13px', color: 'var(--gray-600)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    onClick={() => setVolExpanded(!volExpanded)}
+                  >
+                    {mockVolunteers.length} Voluntarios pendientes {volExpanded ? '▲' : '▼'}
+                  </div>
+                </div>
+
+                {volExpanded && (
+                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {mockVolunteers.map(v => (
+                      <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', padding: '6px 0', borderBottom: '1px solid var(--gray-200)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gray-800)' }}>
+                          <span>{v.role === 'Transporte' ? '🚚' : v.role === 'Médico' ? '⚕️' : '💪'}</span>
+                          <strong>{v.name}</strong>
+                          {v.isVeterano && <span title="Veterano Verificado">🛡️</span>}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', background: v.status === 'matched' ? '#e6f4ea' : 'var(--gray-200)', color: v.status === 'matched' ? '#137333' : 'var(--gray-700)' }}>
+                            {v.status === 'matched' ? 'En camino' : 'Pendiente'}
+                          </span>
+                          <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px' }} title="Reportar Spam">🚩</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* VOLUNTEER BOTTOM SHEET FORM */}
+              {volFormOpen && (
+                <div style={{ marginTop: '12px', background: 'white', padding: '16px', borderRadius: '8px', border: '1px solid var(--primary)', position: 'relative' }}>
+                  <button onClick={() => setVolFormOpen(false)} style={{ position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', fontSize: '16px', cursor: 'pointer' }}>✕</button>
+                  <h3 style={{ fontSize: '15px', margin: '0 0 12px 0' }}>Ofrecer Ayuda</h3>
+                  <input type="text" placeholder="Tu Nombre" value={volName} onChange={e => setVolName(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid var(--gray-300)' }} />
+                  <select value={volRole} onChange={e => setVolRole(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid var(--gray-300)' }}>
+                    <option value="Transporte">🚚 Transporte</option>
+                    <option value="Médico">⚕️ Personal Médico</option>
+                    <option value="Logística">💪 Fuerza / Logística</option>
+                  </select>
+                  <input type="tel" placeholder="WhatsApp (Ej: 04241234567)" value={volPhone} onChange={e => setVolPhone(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '12px', borderRadius: '4px', border: '1px solid var(--gray-300)' }} />
+                  <button 
+                    style={{ width: '100%', background: 'var(--primary)', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
+                    onClick={() => {
+                      if(!volName || !volPhone) return;
+                      // MOCK: Add to local state
+                      setMockVolunteers(prev => [...prev, {id: Date.now(), name: volName, role: volRole, status: 'pending', isVeterano: false}]);
+                      setHasActiveOffer(true);
+                      setVolFormOpen(false);
+                      // MOCK: open whatsapp
+                      let cleanPhone = (selectedLoc.leader_phone || '').replace(/[^0-9]/g, '');
+                      if(cleanPhone.length > 5) {
+                        const msg = `SOS *AcopioVen — Nuevo Voluntario*\n\nHola, soy *${volName}* y quiero ayudar en el centro *${selectedLoc.name}*.\n\nOfrezco: ${volRole}\nMi WA: ${volPhone}`;
+                        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                      } else {
+                        alert("Este centro no tiene WhatsApp registrado.");
+                      }
+                    }}
+                  >
+                    Enviar y Abrir WhatsApp
+                  </button>
                 </div>
               )}
 
