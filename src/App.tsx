@@ -555,7 +555,7 @@ function App() {
 
 
   // WhatsApp formatter
-  const formatWaLink = (phone: string) => {
+  const formatWaLink = (phone: string, textMessage?: string) => {
     let cleanPhone = phone.replace(/[^0-9+]/g, '');
     if (cleanPhone.startsWith('0')) {
       cleanPhone = '58' + cleanPhone.substring(1);
@@ -565,7 +565,12 @@ function App() {
     }
     // Remove +
     cleanPhone = cleanPhone.replace('+', '');
-    return `https://wa.me/${cleanPhone}`;
+    
+    let url = `https://wa.me/${cleanPhone}`;
+    if (textMessage) {
+      url += `?text=${encodeURIComponent(textMessage)}`;
+    }
+    return url;
   };
 
   return (
@@ -841,7 +846,10 @@ function App() {
                       <button className="btn-call" onClick={() => window.open(`tel:${selectedLoc.leader_phone}`)}>
                         <Phone size={16} /> Llamar
                       </button>
-                      <button className="btn-wa" onClick={() => window.open(formatWaLink(selectedLoc.leader_phone!), '_blank')}>
+                      <button className="btn-wa" onClick={() => {
+                        const defaultMsg = `Hola, te contacto desde *AcopioVen*. Quisiera saber si el centro *${selectedLoc.name}* está necesitando apoyo o insumos ahora mismo.`;
+                        window.open(formatWaLink(selectedLoc.leader_phone!, defaultMsg), '_blank');
+                      }}>
                         <MessageCircle size={16} /> WhatsApp
                       </button>
                     </div>
