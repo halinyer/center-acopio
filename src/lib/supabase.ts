@@ -82,6 +82,26 @@ export const DEMO_ACOPIOS: LocationRow[] = [
 
 export async function searchLocation(query: string): Promise<Array<{lat: number, lon: number, display_name: string, type: string}>> {
   const fullQuery = query.toLowerCase().includes('venezuela') ? query : `${query}, Venezuela`;
+  const googleKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  // Motor Principal: Google Maps (Si hay llave)
+  if (googleKey) {
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(fullQuery)}&region=ve&key=${googleKey}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        return data.results.map((r: any) => ({
+          lat: r.geometry.location.lat,
+          lon: r.geometry.location.lng,
+          display_name: r.name + (r.formatted_address ? `, ${r.formatted_address}` : ''),
+          type: r.types?.[0] || 'point_of_interest'
+        }));
+      }
+    } catch (e) {
+      console.warn("Error con Google Maps, usando fallback abierto:", e);
+    }
+  }
 
   // Motor 1: Photon (Komoot) — fuzzy matching excelente, ideal para autocompletado
   const photonSearch = async (): Promise<Array<{lat: number, lon: number, display_name: string, type: string}>> => {
@@ -124,7 +144,7 @@ export async function searchLocation(query: string): Promise<Array<{lat: number,
     } catch { return []; }
   };
 
-  // Ejecutar ambos motores en paralelo
+  // Fallback: Ejecutar ambos motores libres en paralelo
   const [photonResults, nominatimResults] = await Promise.all([photonSearch(), nominatimSearch()]);
 
   // Combinar y deduplicar por proximidad (si dos resultados están a menos de 50m, son iguales)
