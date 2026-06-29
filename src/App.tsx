@@ -679,12 +679,29 @@ function App() {
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
               {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
-            {isUnlocked && <button className="btn-pill btn-add-top" onClick={startPlacing}><Plus size={18} /> <span>Agregar</span></button>}
-            <button className="btn-pill" onClick={() => setShowRadarModal(true)} style={{ background: 'var(--gray-900)', color: 'white' }}><User size={18} /> <span>Radar</span></button>
-            <button className="btn-pill" onClick={() => setShowList(true)}><ListIcon size={18} /> <span>Ver lista</span></button>
             <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
             <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
           </div>
+        </div>
+      )}
+
+      {/* BOTTOM NAVIGATION BAR (Option A) */}
+      {!placingMode && !showList && (
+        <div className="bottom-nav-bar">
+          {isUnlocked && (
+            <button className="nav-btn" onClick={startPlacing}>
+              <Plus size={20} />
+              <span>Registrar</span>
+            </button>
+          )}
+          <button className="nav-btn primary" onClick={() => setShowRadarModal(true)}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✋</div>
+            <span>Quiero Ayudar</span>
+          </button>
+          <button className="nav-btn" onClick={() => setShowList(true)}>
+            <ListIcon size={20} />
+            <span>Directorio</span>
+          </button>
         </div>
       )}
 
@@ -1058,7 +1075,7 @@ function App() {
         <div className="modal-overlay" style={{ background: 'white', zIndex: 9999 }}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '600px', margin: '0 auto', background: 'white' }}>
             <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--gray-200)', background: 'white' }}>
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', margin: 0 }}><User size={20} /> Central de Voluntarios</h2>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', margin: 0 }}>✋ Quiero Ayudar</h2>
               <button onClick={() => setShowRadarModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
             
