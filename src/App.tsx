@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { SwipeableSheet } from './components/SwipeableSheet';
 import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
@@ -718,9 +719,8 @@ function App() {
 
 
       {/* AUTH MODAL */}
-      {showAuthModal && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}>
-          <div className="auth-card">
+      <SwipeableSheet isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} className="auth-card">
+            <div className="list-handle" />
             <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><Lock size={20} /> Acceso a Líderes</h2>
             <p>Ingresa el código de acceso para poder registrar centros de acopio.</p>
             <form onSubmit={handleAuthSubmit}>
@@ -736,14 +736,10 @@ function App() {
                 <button type="submit" className="btn-submit-auth">Verificar</button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </SwipeableSheet>
 
       {/* HELP MODAL */}
-      {showHelpModal && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowHelpModal(false); }}>
-          <div className="modal-sheet help-sheet">
+      <SwipeableSheet isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} className="help-sheet">
             <div className="list-handle" />
             <div className="modal-header">
               <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><HelpCircle size={20} /> ¿Cómo funciona?</h2>
@@ -768,14 +764,10 @@ function App() {
               </div>
               <button className="help-close-btn" onClick={() => setShowHelpModal(false)}>Entendido</button>
             </div>
-          </div>
-        </div>
-      )}
+      </SwipeableSheet>
 
       {/* LIST PANEL */}
-      {showList && (
-        <div className="list-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowList(false); }}>
-          <div className="list-sheet">
+      <SwipeableSheet isOpen={showList} onClose={() => setShowList(false)} className="list-sheet">
             <div className="list-handle" />
             <div className="list-header">
               <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><ListIcon size={20} /> Todos los puntos cercanos</h2>
@@ -813,14 +805,11 @@ function App() {
 
               <div className="powered-by">Powered by <strong>signalNote</strong></div>
             </div>
-          </div>
-        </div>
-      )}
+      </SwipeableSheet>
 
       {/* DETAILS MODAL */}
-      {selectedLoc && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setSelectedLoc(null); }}>
-          <div className="modal-sheet details-sheet">
+      <SwipeableSheet isOpen={!!selectedLoc} onClose={() => setSelectedLoc(null)} className="details-sheet">
+          {selectedLoc && (<>
             
             {/* Header Image */}
             {selectedLoc.photo_url ? (
@@ -987,14 +976,11 @@ function App() {
                 <MapIcon size={18} /> Abrir ruta en Google Maps
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </>)}
+      </SwipeableSheet>
 
       {/* LOCATION CHOOSER MODAL */}
-      {showLocationChooser && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowLocationChooser(false); }}>
-          <div className="modal-sheet chooser-sheet">
+      <SwipeableSheet isOpen={showLocationChooser} onClose={() => setShowLocationChooser(false)} className="chooser-sheet">
             <div className="list-handle" />
             <div className="modal-header" style={{ paddingBottom: '8px' }}>
               <h2>¿Dónde está el centro?</h2>
@@ -1017,9 +1003,7 @@ function App() {
                 </div>
               </button>
             </div>
-          </div>
-        </div>
-      )}
+      </SwipeableSheet>
 
       {/* ADD FORM */}
       {showForm && (
@@ -1140,9 +1124,7 @@ function App() {
       )}
 
       {/* NOTIFICATIONS HISTORY MODAL */}
-      {showNotifications && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowNotifications(false); }}>
-          <div className="modal-sheet notifications-sheet">
+      <SwipeableSheet isOpen={showNotifications} onClose={() => setShowNotifications(false)} className="notifications-sheet">
             <div className="modal-handle" />
             <div className="modal-header" style={{paddingBottom: '8px'}}>
               <h2>Buzón de Notificaciones</h2>
@@ -1177,9 +1159,7 @@ function App() {
                 ))
               )}
             </div>
-          </div>
-        </div>
-      )}
+      </SwipeableSheet>
 
       {/* TOAST NOTIFICATIONS */}
       {activeToast && (
