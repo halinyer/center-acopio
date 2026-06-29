@@ -728,9 +728,13 @@ function App() {
                 <span className="help-step-icon"><MessageCircle size={22} /></span>
                 <p><strong>Reportes y Alertas:</strong> Entra a cualquier punto para comentar qué se necesita o confirmar que sigue activo. Las alertas de Médicos y Rescatistas notifican instantáneamente a 20km.</p>
               </div>
+              <div className="help-step">
+                <span className="help-step-icon" style={{ color: 'var(--gray-900)' }}><User size={22} /></span>
+                <p><strong>Radar de Voluntarios:</strong> Si tienes transporte, medicina o fuerza física para aportar, usa el botón <strong>Radar</strong> en la parte superior para conectar directamente con los centros que necesitan tu ayuda.</p>
+              </div>
               <div className="help-step" style={{ background: 'rgba(37,211,102,0.1)', padding: '10px', borderRadius: '8px' }}>
                 <span className="help-step-icon" style={{ color: '#25D366' }}><MessageCircle size={22} /></span>
-                <p><strong>Agregar tu Centro o Soporte:</strong> Si deseas agregar tu centro de acopio o tienes dudas sobre la plataforma, contáctanos: <br/><a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none' }}>+58 424-1930273</a></p>
+                <p><strong>Soporte y Registro:</strong> Si deseas agregar tu centro de acopio o tienes dudas sobre la plataforma, contáctanos al <a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none' }}>+58 424-1930273</a>.</p>
               </div>
               <button className="help-close-btn" onClick={() => setShowHelpModal(false)}>Entendido</button>
             </div>
