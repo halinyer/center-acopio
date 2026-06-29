@@ -138,6 +138,11 @@ function App() {
 
   // Access Code System
   const [isUnlocked, setIsUnlocked] = useState(false);
+
+  // Comunidad Ambiental
+  const [networkPulse, setNetworkPulse] = useState<string | null>(null);
+  const [globalStats, setGlobalStats] = useState<{ centros_operativos: number, validaciones_24h: number } | null>(null);
+
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authCode, setAuthCode] = useState('');
   
@@ -146,6 +151,14 @@ function App() {
 
   // Volunteer Radar (MOCK STATE FOR TEST BRANCH)
   const [showRadarModal, setShowRadarModal] = useState(false);
+
+  useEffect(() => {
+    if (!isDemoMode && supabase && showRadarModal) {
+      supabase.from('global_stats').select('*').single().then(({ data }) => {
+        if (data) setGlobalStats(data as any);
+      });
+    }
+  }, [showRadarModal]);
   const [volRole, setVolRole] = useState('Transporte');
   const [hasActiveOffer, setHasActiveOffer] = useState(false);
 
@@ -308,6 +321,7 @@ function App() {
     // Configurar suscripción en tiempo real a Supabase
     let channel: any;
     let socialChannel: any;
+    let telemetryChannel: any;
     if (!isDemoMode && supabase) {
       channel = supabase
         .channel('realtime:public:locations')
@@ -344,6 +358,12 @@ function App() {
               }
             }
           }
+        })
+        .subscribe();
+      telemetryChannel = supabase
+        .channel('public:telemetry')
+        .on('broadcast', { event: 'pulse' }, (payload) => {
+          setNetworkPulse(payload.payload.message);
         })
         .subscribe();
     }
@@ -384,6 +404,7 @@ function App() {
       clearInterval(interval);
       if (channel) supabase?.removeChannel(channel);
       if (socialChannel) supabase?.removeChannel(socialChannel);
+      if (telemetryChannel) supabase?.removeChannel(telemetryChannel);
     };
   }, [fetchAcopios, fetchSocialData, deviceId]);
 
@@ -666,6 +687,11 @@ function App() {
             <div className="brand-icon"><Package size={24} color="white" /></div>
             <div className="brand-text">Acopio<span>Ven</span></div>
           </div>
+          {networkPulse && (
+            <div className="network-pulse">
+              <div className="network-pulse-text">{networkPulse}</div>
+            </div>
+          )}
           <div className="top-actions">
               <button 
                 className="btn-circle" 
@@ -1062,7 +1088,12 @@ function App() {
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', margin: 0 }}>✋ Quiero Ayudar</h2>
               <button onClick={() => setShowRadarModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
-            
+            {globalStats && (
+              <div className="global-stats-board">
+                <div className="global-stats-val">{globalStats.centros_operativos}</div>
+                <div className="global-stats-lbl">Centros Operativos</div>
+              </div>
+            )}
             <div style={{ padding: '16px', flex: 1, overflowY: 'auto', background: 'var(--gray-50)' }}>
               {!hasActiveOffer ? (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid var(--gray-200)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
