@@ -105,21 +105,28 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 }
 .btn-pill.btn-add-top:active { background: #b91c1c; }
 
-/* ========== NEAREST CHIP â€” discreto, arriba del bottom bar ========== */
+/* ========== NEAREST CHIP — Elegante y centrado abajo ========== */
 .nearest-chip {
-  position: absolute; bottom: 56px; left: 12px; right: 12px; z-index: 1000;
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
-  background: var(--white); border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
-  cursor: pointer; transition: transform 0.1s;
-  animation: chipIn 0.3s ease;
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  z-index: 1000;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 40px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: chipIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  width: auto;
+  max-width: 90vw;
+  white-space: nowrap;
 }
-.nearest-chip:active { transform: scale(0.98); }
+.nearest-chip:active { transform: translate(-50%, 2px) scale(0.97); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
 @keyframes chipIn {
-  from { transform: translateY(10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from { transform: translate(-50%, 20px) scale(0.9); opacity: 0; }
+  to { transform: translate(-50%, 0) scale(1); opacity: 1; }
 }
 
 .chip-dot {
@@ -610,12 +617,12 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   .top-actions { gap: 6px; }
   .btn-pill span { display: none; }
   .btn-pill { width: 42px; padding: 0; border-radius: 50%; }
-  .nearest-chip { bottom: 52px; }
+  .btn-pill { width: 42px; padding: 0; border-radius: 50%; }
 }
 
 @media (min-width: 768px) {
   .list-sheet { max-height: 60vh; }
-  .nearest-chip { left: auto; right: 16px; width: 360px; bottom: 60px; }
+  .list-sheet { max-height: 60vh; }
 }
 
 /* EL INDICADOR DE CONFIANZA */
