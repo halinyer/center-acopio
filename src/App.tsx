@@ -209,10 +209,20 @@ function App() {
         const parsed = JSON.parse(cached);
         const now = Date.now();
         // Limpieza pasiva de notificaciones > 48h
-        return parsed.filter((n: any) => now - new Date(n.time).getTime() < 48 * 3600000);
+        const valid = parsed.filter((n: any) => {
+          const t = new Date(n.time).getTime();
+          return !isNaN(t) ? now - t < 48 * 3600000 : true; // Keep if we can't parse time for demo
+        });
+        if (valid.length > 0) return valid;
       }
-      return [];
-    } catch { return []; }
+      return [
+        {id: 1, title: '📍 Campana Táctica Activada', desc: 'Aquí recibirás alertas urgentes (Médico/Rescate) a menos de 20km de ti. Toca para probar.', time: 'Recién', read: false}
+      ];
+    } catch { 
+      return [
+        {id: 1, title: '📍 Campana Táctica Activada', desc: 'Aquí recibirás alertas urgentes (Médico/Rescate) a menos de 20km de ti. Toca para probar.', time: 'Recién', read: false}
+      ];
+    }
   });
 
   const [ignoredLocs, setIgnoredLocs] = useState<Record<string, number>>(() => {
