@@ -182,7 +182,9 @@ function App() {
   const [formNeeds, setFormNeeds] = useState('');
   const [formLeader, setFormLeader] = useState('');
   const [formPhone, setFormPhone] = useState('');
-  const [formDuration, setFormDuration] = useState<number | null>(48); // 48 horas por defecto
+  const [formDuration, setFormDuration] = useState<number | 'custom' | null>(48);
+  const [customDateStr, setCustomDateStr] = useState('');
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Ephemeral Feed & Notifications Mock
@@ -202,9 +204,34 @@ function App() {
   const [notificationsHistory, setNotificationsHistory] = useState<{id: number, title: string, desc: string, time: string, locId?: string, read: boolean}[]>(() => {
     try {
       const cached = localStorage.getItem('notif_history');
-      return cached ? JSON.parse(cached) : [];
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const now = Date.now();
+        // Limpieza pasiva de notificaciones > 48h
+        return parsed.filter((n: any) => now - new Date(n.time).getTime() < 48 * 3600000);
+      }
+      return [];
     } catch { return []; }
   });
+
+  const [ignoredLocs, setIgnoredLocs] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem('ignored_locs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const now = Date.now();
+        Object.keys(parsed).forEach(k => { if (parsed[k] < now) delete parsed[k]; });
+        return parsed;
+      }
+    } catch {}
+    return {};
+  });
+
+  const ignoreLocation = (id: string) => {
+    const newIgnored = { ...ignoredLocs, [id]: Date.now() + 4 * 3600000 };
+    setIgnoredLocs(newIgnored);
+    localStorage.setItem('ignored_locs', JSON.stringify(newIgnored));
+  };
 
   // Persistir notificaciones al cambiar
   useEffect(() => {
@@ -325,6 +352,7 @@ function App() {
     let channel: any;
     let socialChannel: any;
     let telemetryChannel: any;
+    let tacticalChannel: any;
     if (!isDemoMode && supabase) {
       channel = supabase
         .channel('realtime:public:locations')
@@ -369,6 +397,27 @@ function App() {
           setNetworkPulse(payload.new.message);
         })
         .subscribe();
+        
+      tacticalChannel = supabase
+        .channel('realtime:public:tactical_alerts')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tactical_alerts' }, payload => {
+          const alert = payload.new;
+          const pos = userPosRef.current;
+          if (pos) {
+            const dist = getDistanceKm(pos.lat, pos.lng, alert.lat, alert.lng);
+            if (dist <= 20) {
+              setNotificationsHistory(prev => [{
+                id: Date.now(),
+                title: alert.title,
+                desc: alert.description,
+                time: alert.created_at,
+                locId: alert.location_id,
+                read: false
+              }, ...prev.slice(0, 49)]);
+            }
+          }
+        })
+        .subscribe();
     }
     
     const startTime = Date.now();
@@ -408,6 +457,7 @@ function App() {
       if (channel) supabase?.removeChannel(channel);
       if (socialChannel) supabase?.removeChannel(socialChannel);
       if (telemetryChannel) supabase?.removeChannel(telemetryChannel);
+      if (tacticalChannel) supabase?.removeChannel(tacticalChannel);
     };
   }, [fetchAcopios, fetchSocialData, deviceId]);
 
@@ -440,11 +490,12 @@ function App() {
     let minDist = Infinity;
     let closest: LocationRow | null = null;
     for (const a of acopios) {
+      if (ignoredLocs[a.id]) continue; // Protocolo Amnesia
       const d = getDistanceKm(userPos.lat, userPos.lng, a.lat, a.lng);
       if (d < minDist) { minDist = d; closest = a; }
     }
-    return closest ? { location: closest, distance: minDist } : null;
-  }, [userPos, acopios]);
+    return closest && minDist < 15 ? { location: closest, distance: minDist } : null;
+  }, [userPos, acopios, ignoredLocs]);
 
   const handleLocate = () => {
     if (!navigator.geolocation) return;
@@ -516,7 +567,8 @@ function App() {
       updated_at: new Date().toISOString(),
     };
     
-    const expiresAtISO = formDuration ? new Date(Date.now() + formDuration * 3600000).toISOString() : null;
+    const expiresAtISO = formDuration === 'custom' && customDateStr ? new Date(customDateStr).toISOString() :
+                         (typeof formDuration === 'number' ? new Date(Date.now() + formDuration * 3600000).toISOString() : null);
 
     if (editingId) {
       if (!isDemoMode && supabase) {
@@ -745,7 +797,14 @@ function App() {
           <div className="chip-info">
             <div className="chip-name">{nearest.location.name}</div>
             <div className="chip-dist" style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Más cercano · {fmtDist(nearest.distance)}</div>
+            {nearest.location.needs && <div className="chip-needs">⚠️ {nearest.location.needs}</div>}
+            {nearest.location.expires_at && (
+              <div className={`expiry-alert ${new Date(nearest.location.expires_at).getTime() - Date.now() < 86400000 ? 'urgent' : ''}`}>
+                {new Date(nearest.location.expires_at).getTime() - Date.now() < 86400000 ? '🔴 Cierra pronto' : '⏳ Activo'}
+              </div>
+            )}
           </div>
+          <button className="chip-close" onClick={(e) => { e.stopPropagation(); ignoreLocation(nearest.location.id); }}>✕</button>
         </div>
       )}
 
@@ -1083,9 +1142,24 @@ function App() {
               <div className="field">
                 <label style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Duración de la Jornada</label>
                 <div className="duration-chips">
-                  <div className={`duration-chip ${formDuration === 12 ? 'active' : ''}`} onClick={() => setFormDuration(12)}>⏳ 12 horas</div>
-                  <div className={`duration-chip ${formDuration === 48 ? 'active' : ''}`} onClick={() => setFormDuration(48)}>⏳ 48 horas</div>
-                  <div className={`duration-chip ${formDuration === 168 ? 'active' : ''}`} onClick={() => setFormDuration(168)}>⏳ Una semana</div>
+                  <div className={`duration-chip ${formDuration === 24 ? 'active' : ''}`} onClick={() => setFormDuration(24)}>⏳ 24 horas</div>
+                  <div className={`duration-chip ${formDuration === 72 ? 'active' : ''}`} onClick={() => setFormDuration(72)}>⏳ 3 Días</div>
+                  
+                  <div className="custom-date-wrap">
+                    <div className={`custom-date-btn ${formDuration === 'custom' ? 'active' : ''}`} 
+                         onClick={(e) => { 
+                           e.preventDefault(); 
+                           setFormDuration('custom'); 
+                           if (dateInputRef.current && 'showPicker' in dateInputRef.current) {
+                             try { (dateInputRef.current as any).showPicker(); } catch {}
+                           }
+                         }}>
+                      📅 {formDuration === 'custom' && customDateStr ? new Date(customDateStr).toLocaleDateString([], {day:'2-digit', month:'short'}) : 'Fecha Exacta'}
+                    </div>
+                    <input type="datetime-local" ref={dateInputRef} className="hidden-date-input" 
+                           value={customDateStr} onChange={e => { setCustomDateStr(e.target.value); setFormDuration('custom'); }} />
+                  </div>
+
                   <div className={`duration-chip ${formDuration === null ? 'active' : ''}`} onClick={() => setFormDuration(null)}>♾️ Punto Fijo</div>
                 </div>
               </div>
