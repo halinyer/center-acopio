@@ -145,16 +145,8 @@ function App() {
 
   // Volunteer Radar (MOCK STATE FOR TEST BRANCH)
   const [showRadarModal, setShowRadarModal] = useState(false);
-  const [volFormOpen, setVolFormOpen] = useState(false);
-  const [volName, setVolName] = useState('');
   const [volRole, setVolRole] = useState('Transporte');
-  const [volPhone, setVolPhone] = useState('');
   const [hasActiveOffer, setHasActiveOffer] = useState(false);
-  const [mockVolunteers, setMockVolunteers] = useState([
-    {id: 1, name: 'Carlos', role: 'Transporte', status: 'pending', isVeterano: false, dist: 1.2},
-    {id: 2, name: 'María', role: 'Médico', status: 'matched', isVeterano: true, dist: 3.5},
-    {id: 3, name: 'José', role: 'Logística', status: 'pending', isVeterano: false, dist: 4.1}
-  ]);
 
   // Modals
   const [showList, setShowList] = useState(false);
