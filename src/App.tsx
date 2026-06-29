@@ -1052,84 +1052,66 @@ function App() {
         <div className="modal-overlay" style={{ background: 'white', zIndex: 9999 }}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '600px', margin: '0 auto', background: 'white' }}>
             <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--gray-200)', background: 'white' }}>
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', margin: 0 }}><User size={20} /> Directorio Radar</h2>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', margin: 0 }}><User size={20} /> Central de Voluntarios</h2>
               <button onClick={() => setShowRadarModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
             
             <div style={{ padding: '16px', flex: 1, overflowY: 'auto', background: 'var(--gray-50)' }}>
-              {!volFormOpen ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--gray-600)', textAlign: 'center' }}>Los voluntarios más cercanos a la zona central del mapa</p>
-                  
-                  {mockVolunteers.map(v => (
-                    <div key={v.id} style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid var(--gray-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ fontSize: '24px' }}>{v.role === 'Transporte' ? '🚚' : v.role === 'Médico' ? '⚕️' : '💪'}</div>
-                        <div>
-                          <div style={{ fontWeight: 'bold', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            {v.name} {v.isVeterano && <span title="Veterano Verificado" style={{fontSize:'12px'}}>🛡️</span>}
-                          </div>
-                          <div style={{ fontSize: '12px', color: 'var(--gray-500)' }}>{v.role} · A {v.dist} km de aquí</div>
-                        </div>
-                      </div>
-                      <button 
-                        style={{ background: 'var(--gray-900)', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                        onClick={() => {
-                          window.open(`https://wa.me/584240000000?text=${encodeURIComponent(`Hola ${v.name}, te escribo desde AcopioVen...`)}`, '_blank');
-                        }}
-                      >
-                        <Phone size={12} /> Contactar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
+              {!hasActiveOffer ? (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid var(--gray-200)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                  <h3 style={{ fontSize: '18px', margin: '0 0 16px 0', textAlign: 'center' }}>Hacerte Visible</h3>
-                  <input type="text" placeholder="Tu Nombre (Ej: Carlos)" value={volName} onChange={e => setVolName(e.target.value)} style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '15px' }} />
+                  <h3 style={{ fontSize: '18px', margin: '0 0 8px 0', textAlign: 'center' }}>¿Quieres ayudar?</h3>
+                  <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--gray-600)', textAlign: 'center' }}>Dinos qué ofreces y te conectaremos con los centros que te necesitan ahora mismo.</p>
+                  
                   <select value={volRole} onChange={e => setVolRole(e.target.value)} style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '15px', background: 'white' }}>
                     <option value="Transporte">🚚 Transporte (Camión/Moto)</option>
                     <option value="Médico">⚕️ Personal Médico / Rescate</option>
                     <option value="Logística">💪 Fuerza Física / Logística</option>
                   </select>
-                  <input type="tel" placeholder="WhatsApp (Ej: 04241930273)" value={volPhone} onChange={e => setVolPhone(e.target.value)} style={{ width: '100%', padding: '12px', marginBottom: '20px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '15px' }} />
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button style={{ flex: 1, padding: '12px', border: '1px solid var(--gray-300)', background: 'white', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => setVolFormOpen(false)}>Cancelar</button>
-                    <button 
-                      style={{ flex: 2, background: 'var(--gray-900)', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-                      onClick={() => {
-                        if(!volName || !volPhone) return;
-                        setMockVolunteers(prev => [{id: Date.now(), name: volName, role: volRole, status: 'pending', isVeterano: false, dist: 0}, ...prev]);
-                        setHasActiveOffer(true);
-                        setVolFormOpen(false);
-                      }}
-                    >
-                      Activar mi Disponibilidad
-                    </button>
+                  
+                  <button 
+                    style={{ width: '100%', background: 'var(--gray-900)', color: 'white', padding: '14px', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
+                    onClick={() => {
+                      setHasActiveOffer(true); // Activa la vista de resultados
+                    }}
+                  >
+                    Buscar centros cerca de mí
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: 'var(--gray-800)' }}>Centros que necesitan tu ayuda ({volRole})</p>
+                    <button onClick={() => setHasActiveOffer(false)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}>Cambiar rol</button>
                   </div>
+                  
+                  {acopios.filter(a => a.leader_phone).slice(0, 3).map(center => {
+                    const dist = userPos ? distTo(center.lat, center.lng) : Math.random() * 5 + 1;
+                    return (
+                    <div key={center.id} style={{ background: 'white', padding: '16px', borderRadius: '8px', border: '1px solid var(--gray-200)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '16px', color: 'var(--gray-900)' }}>{center.name}</div>
+                        <div style={{ fontSize: '13px', color: 'var(--gray-500)' }}>A {typeof dist === 'number' ? dist.toFixed(1) : dist} km de tu ubicación</div>
+                        {center.needs && <div style={{ fontSize: '13px', color: 'var(--gray-700)', marginTop: '4px' }}><strong>Necesitan:</strong> {center.needs}</div>}
+                      </div>
+                      <button 
+                        style={{ background: '#25D366', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
+                        onClick={() => {
+                          let cleanPhone = center.leader_phone!.replace(/[^0-9]/g, '');
+                          const msg = `🆘 *AcopioVen — Nuevo Voluntario*\n\nHola, soy voluntario y estoy cerca de tu centro *${center.name}*.\n\nOfrezco: *${volRole}*\n\n¿Están necesitando apoyo ahora mismo?`;
+                          window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                        }}
+                      >
+                        <MessageCircle size={16} /> Enviar WhatsApp al Líder
+                      </button>
+                    </div>
+                  )})}
+                  
+                  {acopios.filter(a => a.leader_phone).length === 0 && (
+                     <div style={{ padding: '20px', textAlign: 'center', color: 'var(--gray-500)' }}>No hay centros con número de contacto en esta zona.</div>
+                  )}
                 </div>
               )}
             </div>
-
-            {/* Bottom Floating Action inside Overlay */}
-            {!volFormOpen && (
-              <div style={{ padding: '16px', borderTop: '1px solid var(--gray-200)', background: 'white' }}>
-                <button 
-                  style={{ width: '100%', background: hasActiveOffer ? 'var(--gray-200)' : 'var(--gray-900)', color: hasActiveOffer ? 'var(--gray-600)' : 'white', padding: '16px', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: hasActiveOffer ? 'default' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-                  onClick={() => {
-                    if(!hasActiveOffer) setVolFormOpen(true);
-                  }}
-                  disabled={hasActiveOffer}
-                >
-                  {hasActiveOffer ? '✅ Estás visible en el Radar' : '✋ Añadirme al Radar'}
-                </button>
-                {hasActiveOffer && (
-                  <div style={{ textAlign: 'center', marginTop: '12px' }}>
-                    <span style={{ fontSize: '13px', color: 'red', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setHasActiveOffer(false)}>Ocultarme del Radar</span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       )}
