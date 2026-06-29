@@ -708,7 +708,10 @@ function App() {
       {nearest && !placingMode && !showList && !selectedLoc && (
         <div className="nearest-chip" onClick={() => openDetails(nearest.location)}>
           <div className="chip-dot" />
-          <span>{fmtDist(nearest.distance)} · {nearest.location.name}</span>
+          <div className="chip-info">
+            <div className="chip-name">{nearest.location.name}</div>
+            <div className="chip-dist" style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Más cercano · {fmtDist(nearest.distance)}</div>
+          </div>
         </div>
       )}
 
