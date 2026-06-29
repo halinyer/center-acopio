@@ -182,6 +182,7 @@ function App() {
   const [formNeeds, setFormNeeds] = useState('');
   const [formLeader, setFormLeader] = useState('');
   const [formPhone, setFormPhone] = useState('');
+  const [formDuration, setFormDuration] = useState<number | null>(48); // 48 horas por defecto
   const [submitting, setSubmitting] = useState(false);
 
   // Ephemeral Feed & Notifications Mock
@@ -275,8 +276,10 @@ function App() {
 
   const fetchAcopios = useCallback(async () => {
     if (isDemoMode || !supabase) { setAcopios(DEMO_ACOPIOS); return; }
-    const { data, error } = await supabase.from('locations').select('*').eq('is_active', true);
-    if (error) console.error(error);
+    const { data, error } = await supabase.from('locations').select('*')
+      .eq('is_active', true)
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+    if (error) console.error('fetchAcopios', error);
     else setAcopios(data || []);
   }, []);
 
@@ -513,13 +516,16 @@ function App() {
       updated_at: new Date().toISOString(),
     };
     
+    const expiresAtISO = formDuration ? new Date(Date.now() + formDuration * 3600000).toISOString() : null;
+
     if (editingId) {
       if (!isDemoMode && supabase) {
         const { error } = await supabase.rpc('edit_location_secure', {
           p_id: editingId,
           p_name: formName, p_type: formType, p_needs: formNeeds,
           p_leader_name: formLeader, p_leader_phone: formPhone,
-          p_auth_code: authCode
+          p_auth_code: authCode,
+          p_expires_at: expiresAtISO
         });
         if (error) { alert('Error actualizando: ' + error.message); setSubmitting(false); return; }
       } else {
@@ -531,7 +537,8 @@ function App() {
           p_name: formName, p_type: formType, p_needs: formNeeds, p_address: placedAddress,
           p_lat: placedPos?.lat || 0, p_lng: placedPos?.lng || 0,
           p_leader_name: formLeader, p_leader_phone: formPhone,
-          p_auth_code: authCode
+          p_auth_code: authCode,
+          p_expires_at: expiresAtISO
         });
         if (error) { alert('Error guardando: ' + error.message); setSubmitting(false); return; }
       } else {
@@ -867,6 +874,11 @@ function App() {
               {distTo(selectedLoc.lat, selectedLoc.lng) !== null && (
                 <div className="details-dist">A {fmtDist(distTo(selectedLoc.lat, selectedLoc.lng))} de ti</div>
               )}
+              {selectedLoc.expires_at && (
+                <div className={`expiry-alert ${new Date(selectedLoc.expires_at).getTime() - Date.now() < 86400000 ? 'urgent' : ''}`}>
+                  {new Date(selectedLoc.expires_at).getTime() - Date.now() < 86400000 ? '🔴 Cierra en menos de 24h' : '⏳ Activo temporalmente'}
+                </div>
+              )}
 
               {/* Leader Info & Phone Buttons */}
               {(selectedLoc.leader_name || selectedLoc.leader_phone) && (
@@ -1065,6 +1077,16 @@ function App() {
                 <div className="field" style={{ flex: 1 }}>
                   <label style={{display:'flex', alignItems:'center', gap:'4px'}}><Phone size={14} /> Teléfono</label>
                   <input type="tel" value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="Ej: 0414..." />
+                </div>
+              </div>
+
+              <div className="field">
+                <label style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Duración de la Jornada</label>
+                <div className="duration-chips">
+                  <div className={`duration-chip ${formDuration === 12 ? 'active' : ''}`} onClick={() => setFormDuration(12)}>⏳ 12 horas</div>
+                  <div className={`duration-chip ${formDuration === 48 ? 'active' : ''}`} onClick={() => setFormDuration(48)}>⏳ 48 horas</div>
+                  <div className={`duration-chip ${formDuration === 168 ? 'active' : ''}`} onClick={() => setFormDuration(168)}>⏳ Una semana</div>
+                  <div className={`duration-chip ${formDuration === null ? 'active' : ''}`} onClick={() => setFormDuration(null)}>♾️ Punto Fijo</div>
                 </div>
               </div>
 

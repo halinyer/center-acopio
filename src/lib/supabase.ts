@@ -22,6 +22,7 @@ export interface LocationRow {
   photo_url?: string;
   created_at: string;
   is_active?: boolean;
+  expires_at?: string | null;
 }
 
 export interface EphemeralNote {

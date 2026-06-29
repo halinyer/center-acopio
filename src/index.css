@@ -939,3 +939,44 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 }
 .global-stats-val { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
 .global-stats-lbl { font-size: 13px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ========== CHIPS DE DURACIÓN (CADUCIDAD) ========== */
+.duration-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.duration-chip {
+  padding: 12px 8px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  color: var(--gray-600);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.duration-chip:active {
+  transform: scale(0.97);
+}
+.duration-chip.active {
+  background: var(--gray-900);
+  color: white;
+  border-color: var(--gray-900);
+}
+.expiry-alert {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--gray-500);
+}
+.expiry-alert.urgent {
+  color: var(--red);
+}
