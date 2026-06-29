@@ -660,12 +660,13 @@ function App() {
       </div>
 
       {!placingMode && (
-        <div className="top-bar">
-          <div className="brand">
-            <div className="brand-icon"><Package size={24} color="white" /></div>
-            <div className="brand-text">Acopio<span>Ven</span></div>
-          </div>
-          <div className="top-actions">
+        <div className="top-bar-container">
+          <div className="top-bar-row">
+            <div className="brand">
+              <div className="brand-icon"><Package size={24} color="white" /></div>
+              <div className="brand-text">Acopio<span>Ven</span></div>
+            </div>
+            <div className="top-actions">
               <button 
                 className="btn-circle" 
                 style={{position: 'relative'}} 
@@ -679,29 +680,28 @@ function App() {
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
               {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
-            <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
-            <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
+              <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* BOTTOM NAVIGATION BAR (Option A) */}
-      {!placingMode && !showList && (
-        <div className="bottom-nav-bar">
-          {isUnlocked && (
-            <button className="nav-btn" onClick={startPlacing}>
-              <Plus size={20} />
-              <span>Registrar</span>
-            </button>
+          
+          {!showList && (
+            <div className="top-bar-scroll">
+              <button className="btn-pill btn-primary" onClick={() => setShowRadarModal(true)}>
+                <div style={{fontSize: '16px'}}>✋</div> <span>Quiero Ayudar</span>
+              </button>
+              <button className="btn-pill" onClick={() => setShowList(true)}>
+                <ListIcon size={16} /> <span>Directorio</span>
+              </button>
+              {isUnlocked && (
+                <button className="btn-pill" onClick={startPlacing}>
+                  <Plus size={16} /> <span>Registrar</span>
+                </button>
+              )}
+              <button className="btn-pill" onClick={handleLocate}>
+                <MapPin size={16} /> <span>Mi Ubicación</span>
+              </button>
+            </div>
           )}
-          <button className="nav-btn primary" onClick={() => setShowRadarModal(true)}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✋</div>
-            <span>Quiero Ayudar</span>
-          </button>
-          <button className="nav-btn" onClick={() => setShowList(true)}>
-            <ListIcon size={20} />
-            <span>Directorio</span>
-          </button>
         </div>
       )}
 

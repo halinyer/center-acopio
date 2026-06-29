@@ -34,13 +34,25 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 .map-full .leaflet-container { width: 100%; height: 100%; }
 
 /* ========== TOP BAR ========== */
-.top-bar {
+.top-bar-container {
   position: absolute; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; flex-direction: column; gap: 8px;
   padding: 12px 16px;
-  display: flex; align-items: center; justify-content: space-between;
   pointer-events: none;
 }
-.top-bar > * { pointer-events: all; }
+.top-bar-container > * { pointer-events: all; }
+
+.top-bar-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.top-bar-scroll {
+  display: flex; align-items: center; gap: 8px;
+  overflow-x: auto; scrollbar-width: none;
+  padding-bottom: 4px; /* for shadow clipping */
+  -webkit-overflow-scrolling: touch;
+}
+.top-bar-scroll::-webkit-scrollbar { display: none; }
 
 .brand {
   display: flex; align-items: center; gap: 8px;
@@ -67,13 +79,17 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 .btn-circle:active { transform: scale(0.92); }
 
 .btn-pill {
-  height: 42px; padding: 0 16px; background: var(--white); border: none;
+  height: 40px; padding: 0 16px; background: var(--white); border: none;
   border-radius: 999px; box-shadow: var(--shadow-lg);
-  font-size: 14px; font-weight: 700; color: var(--gray-900);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: transform 0.1s;
+  font-size: 13.5px; font-weight: 700; color: var(--gray-900);
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  transition: transform 0.1s; white-space: nowrap; flex-shrink: 0;
 }
 .btn-pill:active { transform: scale(0.96); }
+
+.btn-pill.btn-primary {
+  background: var(--gray-900); color: white;
+}
 
 /* ========== BOTTOM BAR ========== */
 /* ========== BOTTOM BAR ========== */
@@ -613,11 +629,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 @media (max-width: 480px) {
   .brand-text { display: none; }
   .brand { padding: 8px; }
-  .top-bar { padding: 8px 10px; }
   .top-actions { gap: 6px; }
-  .btn-pill span { display: none; }
-  .btn-pill { width: 42px; padding: 0; border-radius: 50%; }
-  .btn-pill { width: 42px; padding: 0; border-radius: 50%; }
 }
 
 @media (min-width: 768px) {
@@ -864,27 +876,3 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   font-size: 11px; color: var(--gray-400); font-weight: 600;
 }
 
-/* ========== BOTTOM NAVIGATION BAR (Option A) ========== */
-.bottom-nav-bar {
-  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
-  display: flex; align-items: stretch; gap: 4px;
-  background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
-  padding: 6px; border-radius: 40px; border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.15);
-  width: auto; max-width: 95vw;
-}
-
-.nav-btn {
-  background: transparent; border: none; padding: 8px 16px; border-radius: 30px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  color: var(--gray-500); cursor: pointer; transition: all 0.2s;
-  min-width: 76px;
-}
-.nav-btn span { font-size: 11px; font-weight: 600; }
-.nav-btn:active { transform: scale(0.95); background: var(--gray-100); }
-
-.nav-btn.primary {
-  background: var(--gray-900); color: white;
-}
-.nav-btn.primary:active { background: black; }
-.nav-btn.primary span { font-weight: 700; }
