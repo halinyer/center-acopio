@@ -660,13 +660,12 @@ function App() {
       </div>
 
       {!placingMode && (
-        <div className="top-bar-container">
-          <div className="top-bar-row">
-            <div className="brand">
-              <div className="brand-icon"><Package size={24} color="white" /></div>
-              <div className="brand-text">Acopio<span>Ven</span></div>
-            </div>
-            <div className="top-actions">
+        <div className="top-bar">
+          <div className="brand">
+            <div className="brand-icon"><Package size={24} color="white" /></div>
+            <div className="brand-text">Acopio<span>Ven</span></div>
+          </div>
+          <div className="top-actions">
               <button 
                 className="btn-circle" 
                 style={{position: 'relative'}} 
@@ -680,40 +679,49 @@ function App() {
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
               {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
-              <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
-            </div>
+            <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
+            <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
           </div>
-          
-          {!showList && (
-            <div className="top-bar-scroll">
-              <button className="btn-pill btn-primary" onClick={() => setShowRadarModal(true)}>
-                <div style={{fontSize: '16px'}}>✋</div> <span>Quiero Ayudar</span>
-              </button>
-              <button className="btn-pill" onClick={() => setShowList(true)}>
-                <ListIcon size={16} /> <span>Directorio</span>
-              </button>
-              {isUnlocked && (
-                <button className="btn-pill" onClick={startPlacing}>
-                  <Plus size={16} /> <span>Registrar</span>
-                </button>
-              )}
-              <button className="btn-pill" onClick={handleLocate}>
-                <MapPin size={16} /> <span>Mi Ubicación</span>
-              </button>
-            </div>
-          )}
         </div>
       )}
 
-      {nearest && !placingMode && !showList && !selectedLoc && (
-        <div className="nearest-chip" onClick={() => openDetails(nearest.location)}>
-          <div className="chip-dot" />
-          <div className="chip-info">
-            <div className="chip-name">{nearest.location.name}</div>
-            <div className="chip-dist" style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Más cercano · {fmtDist(nearest.distance)}</div>
+      {/* OPTION C: Permanent Bottom Sheet */}
+      {!placingMode && !showList && !selectedLoc && (
+        <div className="bottom-sheet-permanent">
+          <div className="sheet-handle"></div>
+          <div className="sheet-content">
+            
+            {nearest && (
+              <div className="nearest-card" onClick={() => openDetails(nearest.location)}>
+                <div className="chip-dot" />
+                <div className="chip-info">
+                  <div className="chip-name">{nearest.location.name}</div>
+                  <div className="chip-dist" style={{display:'flex', alignItems:'center', gap:'4px'}}><Package size={14} /> Más cercano · {fmtDist(nearest.distance)}</div>
+                </div>
+              </div>
+            )}
+
+            <div className="sheet-grid">
+              <button className="sheet-btn primary" onClick={() => setShowRadarModal(true)}>
+                <div className="sheet-btn-icon">✋</div>
+                <span>Quiero Ayudar</span>
+              </button>
+              <button className="sheet-btn" onClick={() => setShowList(true)}>
+                <div className="sheet-btn-icon" style={{background: 'var(--gray-100)', color: 'var(--gray-700)'}}><ListIcon size={18} /></div>
+                <span>Directorio</span>
+              </button>
+              {isUnlocked && (
+                <button className="sheet-btn" onClick={startPlacing}>
+                  <div className="sheet-btn-icon" style={{background: 'var(--gray-100)', color: 'var(--gray-700)'}}><Plus size={18} /></div>
+                  <span>Registrar</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
+
+
 
 
 
