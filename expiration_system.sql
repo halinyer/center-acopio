@@ -2,7 +2,7 @@
 ALTER TABLE public.locations ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
 
 -- 2. Modificar la vista global_stats para ignorar caducados
-DROP VIEW IF EXISTS public.global_stats CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS public.global_stats CASCADE;
 CREATE OR REPLACE VIEW public.global_stats AS
 SELECT 
   (SELECT count(*) FROM public.locations WHERE is_active = true AND (expires_at IS NULL OR expires_at > NOW())) as centros_operativos,
