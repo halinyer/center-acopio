@@ -144,15 +144,16 @@ function App() {
   const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Volunteer Radar (MOCK STATE FOR TEST BRANCH)
-  const [volExpanded, setVolExpanded] = useState(false);
+  const [showRadarModal, setShowRadarModal] = useState(false);
   const [volFormOpen, setVolFormOpen] = useState(false);
   const [volName, setVolName] = useState('');
   const [volRole, setVolRole] = useState('Transporte');
   const [volPhone, setVolPhone] = useState('');
   const [hasActiveOffer, setHasActiveOffer] = useState(false);
   const [mockVolunteers, setMockVolunteers] = useState([
-    {id: 1, name: 'Carlos', role: 'Transporte', status: 'pending', isVeterano: false},
-    {id: 2, name: 'María', role: 'Médico', status: 'matched', isVeterano: true}
+    {id: 1, name: 'Carlos', role: 'Transporte', status: 'pending', isVeterano: false, dist: 1.2},
+    {id: 2, name: 'María', role: 'Médico', status: 'matched', isVeterano: true, dist: 3.5},
+    {id: 3, name: 'José', role: 'Logística', status: 'pending', isVeterano: false, dist: 4.1}
   ]);
 
   // Modals
@@ -667,6 +668,7 @@ function App() {
               </button>
               {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
             {isUnlocked && <button className="btn-pill btn-add-top" onClick={startPlacing}><Plus size={18} /> <span>Agregar</span></button>}
+            <button className="btn-pill" onClick={() => setShowRadarModal(true)} style={{ background: 'var(--gray-900)', color: 'white' }}><User size={18} /> <span>Radar</span></button>
             <button className="btn-pill" onClick={() => setShowList(true)}><ListIcon size={18} /> <span>Ver lista</span></button>
             <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
             <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
@@ -850,84 +852,7 @@ function App() {
                 </div>
               )}
 
-              {/* VOLUNTEER RADAR MOCK (TEST BRANCH) */}
-              <div className="volunteer-radar-section" style={{ background: 'var(--gray-50)', padding: '12px', borderRadius: '8px', marginTop: '16px', border: '1px solid var(--gray-200)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <button 
-                    style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: hasActiveOffer ? 0.6 : 1 }}
-                    onClick={() => {
-                      if (hasActiveOffer) return;
-                      setVolFormOpen(true);
-                    }}
-                    disabled={hasActiveOffer}
-                  >
-                    ✋ {hasActiveOffer ? 'Oferta Activa' : 'Ofrecer Ayuda'}
-                  </button>
-                  <div 
-                    style={{ fontSize: '13px', color: 'var(--gray-600)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    onClick={() => setVolExpanded(!volExpanded)}
-                  >
-                    {mockVolunteers.length} Voluntarios pendientes {volExpanded ? '▲' : '▼'}
-                  </div>
-                </div>
 
-                {volExpanded && (
-                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {mockVolunteers.map(v => (
-                      <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', padding: '6px 0', borderBottom: '1px solid var(--gray-200)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gray-800)' }}>
-                          <span>{v.role === 'Transporte' ? '🚚' : v.role === 'Médico' ? '⚕️' : '💪'}</span>
-                          <strong>{v.name}</strong>
-                          {v.isVeterano && <span title="Veterano Verificado">🛡️</span>}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', background: v.status === 'matched' ? '#e6f4ea' : 'var(--gray-200)', color: v.status === 'matched' ? '#137333' : 'var(--gray-700)' }}>
-                            {v.status === 'matched' ? 'En camino' : 'Pendiente'}
-                          </span>
-                          <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px' }} title="Reportar Spam">🚩</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* VOLUNTEER BOTTOM SHEET FORM */}
-              {volFormOpen && (
-                <div style={{ marginTop: '12px', background: 'white', padding: '16px', borderRadius: '8px', border: '1px solid var(--primary)', position: 'relative' }}>
-                  <button onClick={() => setVolFormOpen(false)} style={{ position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', fontSize: '16px', cursor: 'pointer' }}>✕</button>
-                  <h3 style={{ fontSize: '15px', margin: '0 0 12px 0' }}>Ofrecer Ayuda</h3>
-                  <input type="text" placeholder="Tu Nombre" value={volName} onChange={e => setVolName(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid var(--gray-300)' }} />
-                  <select value={volRole} onChange={e => setVolRole(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid var(--gray-300)' }}>
-                    <option value="Transporte">🚚 Transporte</option>
-                    <option value="Médico">⚕️ Personal Médico</option>
-                    <option value="Logística">💪 Fuerza / Logística</option>
-                  </select>
-                  <input type="tel" placeholder="WhatsApp (Ej: 04241234567)" value={volPhone} onChange={e => setVolPhone(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '12px', borderRadius: '4px', border: '1px solid var(--gray-300)' }} />
-                  <button 
-                    style={{ width: '100%', background: 'var(--primary)', color: 'white', padding: '10px', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
-                    onClick={() => {
-                      if(!volName || !volPhone) return;
-                      // MOCK: Add to local state
-                      setMockVolunteers(prev => [...prev, {id: Date.now(), name: volName, role: volRole, status: 'pending', isVeterano: false}]);
-                      setHasActiveOffer(true);
-                      setVolFormOpen(false);
-                      // MOCK: open whatsapp
-                      let cleanPhone = (selectedLoc.leader_phone || '').replace(/[^0-9]/g, '');
-                      if(cleanPhone.length > 5) {
-                        const msg = `SOS *AcopioVen — Nuevo Voluntario*\n\nHola, soy *${volName}* y quiero ayudar en el centro *${selectedLoc.name}*.\n\nOfrezco: ${volRole}\nMi WA: ${volPhone}`;
-                        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                      } else {
-                        alert("Este centro no tiene WhatsApp registrado.");
-                      }
-                    }}
-                  >
-                    Enviar y Abrir WhatsApp
-                  </button>
-                </div>
-              )}
-
-              <hr className="border-t border-gray-200 my-4" style={{margin: '16px 0', border: 'none', borderTop: '1px solid var(--gray-200)'}} />
 
               <button 
                 className={`btn-ghost-verify ${mockVerifications[selectedLoc.id + '_self'] ? 'verified' : ''}`}
@@ -1122,6 +1047,93 @@ function App() {
           </div>
         </div>
       )}
+      {/* RADAR OVERLAY (TEST BRANCH) */}
+      {showRadarModal && (
+        <div className="modal-overlay" style={{ background: 'white', zIndex: 9999 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '600px', margin: '0 auto', background: 'white' }}>
+            <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--gray-200)', background: 'white' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', margin: 0 }}><User size={20} /> Directorio Radar</h2>
+              <button onClick={() => setShowRadarModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+            </div>
+            
+            <div style={{ padding: '16px', flex: 1, overflowY: 'auto', background: 'var(--gray-50)' }}>
+              {!volFormOpen ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--gray-600)', textAlign: 'center' }}>Los voluntarios más cercanos a la zona central del mapa</p>
+                  
+                  {mockVolunteers.map(v => (
+                    <div key={v.id} style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid var(--gray-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ fontSize: '24px' }}>{v.role === 'Transporte' ? '🚚' : v.role === 'Médico' ? '⚕️' : '💪'}</div>
+                        <div>
+                          <div style={{ fontWeight: 'bold', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            {v.name} {v.isVeterano && <span title="Veterano Verificado" style={{fontSize:'12px'}}>🛡️</span>}
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--gray-500)' }}>{v.role} · A {v.dist} km de aquí</div>
+                        </div>
+                      </div>
+                      <button 
+                        style={{ background: 'var(--gray-900)', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        onClick={() => {
+                          window.open(`https://wa.me/584240000000?text=${encodeURIComponent(`Hola ${v.name}, te escribo desde AcopioVen...`)}`, '_blank');
+                        }}
+                      >
+                        <Phone size={12} /> Contactar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid var(--gray-200)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                  <h3 style={{ fontSize: '18px', margin: '0 0 16px 0', textAlign: 'center' }}>Hacerte Visible</h3>
+                  <input type="text" placeholder="Tu Nombre (Ej: Carlos)" value={volName} onChange={e => setVolName(e.target.value)} style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '15px' }} />
+                  <select value={volRole} onChange={e => setVolRole(e.target.value)} style={{ width: '100%', padding: '12px', marginBottom: '12px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '15px', background: 'white' }}>
+                    <option value="Transporte">🚚 Transporte (Camión/Moto)</option>
+                    <option value="Médico">⚕️ Personal Médico / Rescate</option>
+                    <option value="Logística">💪 Fuerza Física / Logística</option>
+                  </select>
+                  <input type="tel" placeholder="WhatsApp (Ej: 04241930273)" value={volPhone} onChange={e => setVolPhone(e.target.value)} style={{ width: '100%', padding: '12px', marginBottom: '20px', borderRadius: '8px', border: '1px solid var(--gray-300)', fontSize: '15px' }} />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button style={{ flex: 1, padding: '12px', border: '1px solid var(--gray-300)', background: 'white', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => setVolFormOpen(false)}>Cancelar</button>
+                    <button 
+                      style={{ flex: 2, background: 'var(--gray-900)', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                      onClick={() => {
+                        if(!volName || !volPhone) return;
+                        setMockVolunteers(prev => [{id: Date.now(), name: volName, role: volRole, status: 'pending', isVeterano: false, dist: 0}, ...prev]);
+                        setHasActiveOffer(true);
+                        setVolFormOpen(false);
+                      }}
+                    >
+                      Activar mi Disponibilidad
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Floating Action inside Overlay */}
+            {!volFormOpen && (
+              <div style={{ padding: '16px', borderTop: '1px solid var(--gray-200)', background: 'white' }}>
+                <button 
+                  style={{ width: '100%', background: hasActiveOffer ? 'var(--gray-200)' : 'var(--gray-900)', color: hasActiveOffer ? 'var(--gray-600)' : 'white', padding: '16px', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: hasActiveOffer ? 'default' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                  onClick={() => {
+                    if(!hasActiveOffer) setVolFormOpen(true);
+                  }}
+                  disabled={hasActiveOffer}
+                >
+                  {hasActiveOffer ? '✅ Estás visible en el Radar' : '✋ Añadirme al Radar'}
+                </button>
+                {hasActiveOffer && (
+                  <div style={{ textAlign: 'center', marginTop: '12px' }}>
+                    <span style={{ fontSize: '13px', color: 'red', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setHasActiveOffer(false)}>Ocultarme del Radar</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* NOTIFICATIONS HISTORY MODAL */}
       {showNotifications && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowNotifications(false); }}>
