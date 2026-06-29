@@ -719,20 +719,12 @@ function App() {
                 <p><strong>100% Comunitario:</strong> Todo el mapa es construido por personas reales. No hay datos automáticos de mapas, lo que ves es estrictamente lo que la gente ha reportado activo.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon"><Plus size={22} /></span>
-                <p><strong>Agregar Puntos:</strong> Toca el botón <strong>+ Agregar</strong>. Busca una dirección con autocompletado exacto o toca el mapa manualmente. <strong>Usa el selector</strong> para indicar si es un Centro de Acopio o una Iglesia.</p>
-              </div>
-              <div className="help-step">
                 <span className="help-step-icon"><MessageCircle size={22} /></span>
                 <p><strong>Reportes y Alertas:</strong> Entra a cualquier punto para comentar qué se necesita o confirmar que sigue activo. Las alertas de Médicos y Rescatistas notifican instantáneamente a 20km.</p>
               </div>
-              <div className="help-step">
-                <span className="help-step-icon"><Lock size={22} /></span>
-                <p><strong>Acceso para Líderes:</strong> La creación de puntos requiere autorización. Toca el candado e ingresa el código para desbloquear las herramientas de mapeo.</p>
-              </div>
               <div className="help-step" style={{ background: 'rgba(37,211,102,0.1)', padding: '10px', borderRadius: '8px' }}>
                 <span className="help-step-icon" style={{ color: '#25D366' }}><MessageCircle size={22} /></span>
-                <p><strong>Soporte y Verificación:</strong> Si deseas agregar tu centro de acopio o tienes dudas sobre la plataforma, contáctanos: <br/><a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none' }}>+58 424-1930273</a></p>
+                <p><strong>Agregar tu Centro o Soporte:</strong> Si deseas agregar tu centro de acopio o tienes dudas sobre la plataforma, contáctanos: <br/><a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none' }}>+58 424-1930273</a></p>
               </div>
               <button className="help-close-btn" onClick={() => setShowHelpModal(false)}>Entendido</button>
             </div>
