@@ -755,8 +755,8 @@ function App() {
                 <p><strong>Reportes y Alertas:</strong> Entra a cualquier punto para comentar qué se necesita o confirmar que sigue activo. Las alertas de Médicos y Rescatistas notifican instantáneamente a 20km.</p>
               </div>
               <div className="help-step">
-                <span className="help-step-icon" style={{ color: 'var(--gray-900)' }}><User size={22} /></span>
-                <p><strong>Radar de Voluntarios:</strong> Si tienes transporte, medicina o fuerza física para aportar, usa el botón <strong>Radar</strong> en la parte superior para conectar directamente con los centros que necesitan tu ayuda.</p>
+                <span className="help-step-icon" style={{ color: 'var(--gray-900)' }}>✋</span>
+                <p><strong>Quiero Ayudar:</strong> Si tienes transporte, medicina o fuerza física para aportar, usa el botón <strong>Quiero Ayudar</strong> en la barra inferior para conectar directamente con los centros que necesitan tu ayuda.</p>
               </div>
               <div className="help-step" style={{ background: 'rgba(37,211,102,0.1)', padding: '10px', borderRadius: '8px' }}>
                 <span className="help-step-icon" style={{ color: '#25D366' }}><MessageCircle size={22} /></span>
