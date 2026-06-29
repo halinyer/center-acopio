@@ -346,6 +346,14 @@ function App() {
         })
         .subscribe();
     }
+    
+    const startTime = Date.now();
+    const finishLocating = () => {
+      const elapsed = Date.now() - startTime;
+      const delay = Math.max(0, 3000 - elapsed);
+      setTimeout(() => setLocating(false), delay);
+    };
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
@@ -353,7 +361,7 @@ function App() {
           const lng = pos.coords.longitude;
           setUserPos({ lat, lng });
           setFlyTarget({ lat, lng, zoom: 13 });
-          setLocating(false);
+          finishLocating();
           const stateStr = await getUserState(lat, lng);
           if (stateStr) userStateRef.current = stateStr;
         },
@@ -361,14 +369,14 @@ function App() {
           console.warn('Geolocation error:', err.message);
           setUserPos({ lat: 10.4806, lng: -66.9036 });
           setFlyTarget({ lat: 10.4806, lng: -66.9036, zoom: 8 });
-          setLocating(false);
+          finishLocating();
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );
     } else {
       setUserPos({ lat: 10.4806, lng: -66.9036 });
       setFlyTarget({ lat: 10.4806, lng: -66.9036, zoom: 8 });
-      setLocating(false);
+      finishLocating();
     }
 
     return () => {
