@@ -1266,6 +1266,10 @@ function App() {
 
             <div style={{overflowY: 'auto', flex: 1}}>
               {(() => {
+                const nearestAllTime = sortedByDist && sortedByDist.length > 0 ? sortedByDist[0] : null;
+                const nearestDist = nearestAllTime && userPos ? getDistanceKm(userPos.lat, userPos.lng, nearestAllTime.lat, nearestAllTime.lng) : null;
+                const showPinnedNearest = notifFilter === 'Todos' && nearestAllTime && nearestDist !== null && nearestDist < 15;
+
                 const filteredNotifs = notificationsHistory.filter(n => {
                   if (notifFilter === 'Todos') return true;
                   if (notifFilter === 'Médico') return n.title.includes('Médico');
@@ -1273,32 +1277,54 @@ function App() {
                   if (notifFilter === 'Nuevos') return n.title.includes('Nuevo');
                   return true;
                 });
-                return filteredNotifs.length === 0 ? (
-                  <div style={{padding: '40px 20px', textAlign: 'center', color: 'var(--gray-500)', fontSize: '14px'}}>
-                    No tienes notificaciones recientes.
-                  </div>
-                ) : (
-                  filteredNotifs.map(n => (
-                    <div 
-                      key={n.id} 
-                      className={`notification-item ${!n.read ? 'unread' : ''}`}
-                      onClick={() => {
-                        if(n.locId) {
-                          const loc = acopios.find(a => a.id === n.locId);
-                          if(loc) openDetails(loc);
-                        }
-                        setShowNotifications(false);
-                        markAllAsRead();
-                      }}
-                    >
-                      <div className="notification-icon"><Bell size={16} /></div>
-                      <div className="notification-text">
-                        <strong>{n.title}</strong>
-                        <p>{n.desc}</p>
-                        <span>{n.time}</span>
+                return (
+                  <>
+                    {showPinnedNearest && (
+                      <div 
+                        className="notification-item"
+                        style={{ borderLeft: '4px solid var(--blue)', background: '#f8fafc' }}
+                        onClick={() => {
+                          if(nearestAllTime) openDetails(nearestAllTime);
+                          setShowNotifications(false);
+                          markAllAsRead();
+                        }}
+                      >
+                        <div className="notification-icon" style={{ background: 'var(--blue)', color: 'white' }}><Package size={16} /></div>
+                        <div className="notification-text">
+                          <strong>Centro más cercano: {nearestAllTime.name}</strong>
+                          <p>{nearestAllTime.needs ? `Urge: ${nearestAllTime.needs}` : 'Acércate a ayudar.'}</p>
+                          <span style={{color: 'var(--blue)'}}>📍 A {nearestDist.toFixed(1)} km de ti</span>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    )}
+                    {filteredNotifs.length === 0 && !showPinnedNearest ? (
+                      <div style={{padding: '40px 20px', textAlign: 'center', color: 'var(--gray-500)', fontSize: '14px'}}>
+                        No tienes notificaciones recientes.
+                      </div>
+                    ) : (
+                      filteredNotifs.map(n => (
+                        <div 
+                          key={n.id} 
+                          className={`notification-item ${!n.read ? 'unread' : ''}`}
+                          onClick={() => {
+                            if(n.locId) {
+                              const loc = acopios.find(a => a.id === n.locId);
+                              if(loc) openDetails(loc);
+                            }
+                            setShowNotifications(false);
+                            markAllAsRead();
+                          }}
+                        >
+                          <div className="notification-icon"><Bell size={16} /></div>
+                          <div className="notification-text">
+                            <strong>{n.title}</strong>
+                            <p>{n.desc}</p>
+                            <span>{n.time}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </>
                 );
               })()}
             </div>
