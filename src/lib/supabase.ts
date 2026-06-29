@@ -84,18 +84,28 @@ export async function searchLocation(query: string): Promise<Array<{lat: number,
   const fullQuery = query.toLowerCase().includes('venezuela') ? query : `${query}, Venezuela`;
   const googleKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-  // Motor Principal: Google Maps (Si hay llave)
+  // Motor Principal: Google Maps (Nueva Places API v1 - Soporta CORS)
   if (googleKey) {
     try {
-      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(fullQuery)}&region=ve&key=${googleKey}`;
-      const res = await fetch(url);
+      const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': googleKey,
+          'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress,places.primaryType'
+        },
+        body: JSON.stringify({
+          textQuery: fullQuery,
+          regionCode: 'VE'
+        })
+      });
       const data = await res.json();
-      if (data.status === 'OK' && data.results && data.results.length > 0) {
-        return data.results.map((r: any) => ({
-          lat: r.geometry.location.lat,
-          lon: r.geometry.location.lng,
-          display_name: r.name + (r.formatted_address ? `, ${r.formatted_address}` : ''),
-          type: r.types?.[0] || 'point_of_interest'
+      if (data.places && data.places.length > 0) {
+        return data.places.map((p: any) => ({
+          lat: p.location.latitude,
+          lon: p.location.longitude,
+          display_name: p.displayName?.text + (p.formattedAddress ? `, ${p.formattedAddress}` : ''),
+          type: p.primaryType || 'point_of_interest'
         }));
       }
     } catch (e) {
