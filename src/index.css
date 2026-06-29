@@ -105,9 +105,9 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 }
 .btn-pill.btn-add-top:active { background: #b91c1c; }
 
-/* ========== NEAREST CHIP — Elegante y centrado abajo ========== */
+/* ========== NEAREST CHIP — Elegante flotando arriba ========== */
 .nearest-chip {
-  position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 76px; left: 50%; transform: translateX(-50%);
   z-index: 1000;
   display: flex; align-items: center; gap: 10px;
   padding: 10px 20px;
@@ -115,17 +115,17 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   backdrop-filter: blur(12px);
   border: 1px solid rgba(0,0,0,0.05);
   border-radius: 40px;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  animation: chipIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: chipInTop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   width: auto;
   max-width: 90vw;
   white-space: nowrap;
 }
-.nearest-chip:active { transform: translate(-50%, 2px) scale(0.97); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.nearest-chip:active { transform: translate(-50%, -2px) scale(0.97); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
-@keyframes chipIn {
-  from { transform: translate(-50%, 20px) scale(0.9); opacity: 0; }
+@keyframes chipInTop {
+  from { transform: translate(-50%, -20px) scale(0.9); opacity: 0; }
   to { transform: translate(-50%, 0) scale(1); opacity: 1; }
 }
 
