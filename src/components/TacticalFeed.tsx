@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Clock, MapPin, Check, MoreHorizontal, Share } from 'lucide-react';
+import { Clock, MapPin, Check, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
 import { getTacticalFeed } from '../lib/supabase';
 import type { TacticalPost, LocationRow } from '../lib/supabase';
 
@@ -39,6 +39,29 @@ export const TacticalFeed = ({ filter, onCenterClick, locations }: { filter: 'to
     } else {
       navigator.clipboard.writeText(text);
       alert('Copiado al portapapeles');
+    }
+  };
+
+  const formatWaLink = (phone: string, textMessage?: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const base = `https://wa.me/${cleanPhone}`;
+    return textMessage ? `${base}?text=${encodeURIComponent(textMessage)}` : base;
+  };
+
+  const handleHelpCenter = (post: TacticalPost) => {
+    const center = locations?.find(l => l.id === post.linked_center_id);
+    if (center && center.leader_phone) {
+      const msg = `Hola, vi en AcopioVen que necesitan apoyo en ${center.name}. ¡Quiero ayudar!`;
+      window.open(formatWaLink(center.leader_phone, msg), '_blank');
+    } else {
+      alert('Este centro no tiene un número de contacto registrado.');
+    }
+  };
+
+  const handleContactAuthor = (post: TacticalPost) => {
+    if (post.contact_phone) {
+      const msg = `Hola, vi tu reporte urgente en AcopioVen sobre la zona de ${post.zone}. ¿Cómo te puedo ayudar?`;
+      window.open(formatWaLink(post.contact_phone, msg), '_blank');
     }
   };
 
@@ -86,6 +109,26 @@ export const TacticalFeed = ({ filter, onCenterClick, locations }: { filter: 'to
               <button className="action-btn-subtle" onClick={() => handleShare(post)}>
                 <Share size={16} /> Compartir
               </button>
+              
+              {post.linked_center_id && (
+                <button 
+                  className="action-btn-subtle" 
+                  style={{ color: 'var(--blue)', fontWeight: '600', marginLeft: 'auto' }}
+                  onClick={() => handleHelpCenter(post)}
+                >
+                  <MessageCircle size={16} /> Ayudar al Centro
+                </button>
+              )}
+              
+              {!post.linked_center_id && post.is_critical && post.contact_phone && (
+                <button 
+                  className="action-btn-subtle" 
+                  style={{ color: 'var(--red)', fontWeight: '600', marginLeft: 'auto' }}
+                  onClick={() => handleContactAuthor(post)}
+                >
+                  <MessageCircle size={16} /> Contactar al Autor
+                </button>
+              )}
             </div>
           </div>
         ))}

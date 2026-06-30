@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS public.tactical_feed (
     author_avatar TEXT,
     content TEXT NOT NULL CHECK (char_length(content) <= 280),
     is_critical BOOLEAN DEFAULT false,
+    contact_phone TEXT,
     linked_center_id UUID REFERENCES public.acopios(id) ON DELETE SET NULL,
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
@@ -57,6 +58,7 @@ RETURNS TABLE (
     author_avatar TEXT,
     content TEXT,
     is_critical BOOLEAN,
+    contact_phone TEXT,
     linked_center_id UUID,
     zone TEXT,
     created_at TIMESTAMP WITH TIME ZONE,
@@ -66,7 +68,7 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT 
-        t.id, t.author_name, t.author_avatar, t.content, t.is_critical, 
+        t.id, t.author_name, t.author_avatar, t.content, t.is_critical, t.contact_phone,
         t.linked_center_id, t.zone, t.created_at, t.supports_count,
         -- Fórmula Haversine para distancia en KM
         (6371 * acos(

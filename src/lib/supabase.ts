@@ -47,6 +47,7 @@ export interface TacticalPost {
   author_avatar?: string;
   content: string;
   is_critical: boolean;
+  contact_phone?: string;
   linked_center_id?: string;
   lat: number;
   lng: number;
@@ -60,8 +61,9 @@ export const DEMO_POSTS: TacticalPost[] = [
     id: '1',
     author_name: 'Carlos M.',
     author_avatar: 'https://i.pravatar.cc/150?u=carlos',
-    content: 'Necesitamos 5 médicos voluntarios urgentemente. Hay muchos heridos llegando de la autopista y los insumos se están acabando.',
+    content: 'Se accidentó el camión con 20 cajas de agua en la autopista, necesitamos a alguien con grúa o transporte para mover la carga.',
     is_critical: true,
+    contact_phone: '584121234567',
     linked_center_id: 'c2', // Hospital CHET
     lat: 10.1910, lng: -67.9931, zone: 'Valencia, Carabobo',
     created_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),

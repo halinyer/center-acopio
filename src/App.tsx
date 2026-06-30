@@ -4,7 +4,7 @@ import { DynamicBottomNav } from './components/DynamicBottomNav';
 import { TacticalFeed } from './components/TacticalFeed';
 import { ReportEditor } from './components/ReportEditor';
 import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation, publishTacticalReport } from './lib/supabase';
-import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, PenLine } from 'lucide-react';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, Megaphone } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -701,7 +701,7 @@ function App() {
       isActive: feedFilter === 'alertas'
     },
     {
-      icon: <PenLine size={20} />,
+      icon: <Megaphone size={20} />,
       label: 'Reportar',
       onClick: () => setShowReportModal(true),
       isPrimary: true
@@ -907,7 +907,7 @@ function App() {
         isOpen={showReportModal} 
         onClose={() => setShowReportModal(false)} 
         contextLocation={selectedLoc ? selectedLoc.name : undefined}
-        onSubmit={async (content, isCritical, linkedCenterName) => {
+        onSubmit={async (content, isCritical, linkedCenterName, contactPhone) => {
           // Resolve linked center ID from name if provided
           let linked_center_id = undefined;
           if (linkedCenterName) {
@@ -919,6 +919,7 @@ function App() {
             author_name: 'Voluntario',
             content,
             is_critical: isCritical,
+            contact_phone: contactPhone,
             linked_center_id,
             lat: userPos?.lat || 10.4806,
             lng: userPos?.lng || -66.9036,
