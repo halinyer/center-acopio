@@ -13,7 +13,19 @@ function timeAgo(dateString: string): string {
   return `Hace ${Math.floor(hrs / 24)}d`;
 }
 
-export const TacticalFeed = ({ filter, onCenterClick, locations }: { filter: 'todo' | 'alertas', onCenterClick?: (c: string) => void, locations?: LocationRow[] }) => {
+export const TacticalFeed = ({ 
+  filter, 
+  onCenterClick, 
+  locations,
+  authUser,
+  onRequestLogin
+}: { 
+  filter: 'todo' | 'alertas', 
+  onCenterClick?: (c: string) => void, 
+  locations?: LocationRow[],
+  authUser?: any,
+  onRequestLogin?: () => void
+}) => {
   const [posts, setPosts] = useState<TacticalPost[]>([]);
   const [newPostsQueue, setNewPostsQueue] = useState<TacticalPost[]>([]);
   
@@ -180,7 +192,13 @@ export const TacticalFeed = ({ filter, onCenterClick, locations }: { filter: 'to
               
               <div className="feed-card-actions">
                 <div style={{ display: 'flex', gap: '16px' }}>
-                  <button className="action-btn-subtle">
+                  <button 
+                    className="action-btn-subtle"
+                    onClick={() => {
+                      if (!authUser) onRequestLogin?.();
+                      else alert('¡Respaldo registrado!'); // TODO: Supabase RPC for support
+                    }}
+                  >
                     <Check size={16} /> Respaldar ({post.supports_count})
                   </button>
                   <button className="action-btn-subtle" onClick={() => handleShare(post)}>

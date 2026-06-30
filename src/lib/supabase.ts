@@ -301,3 +301,53 @@ export async function publishTacticalReport(post: Omit<TacticalPost, 'id' | 'cre
   }
   return true;
 }
+
+// ==========================================
+// AUTHENTICATION & IDENTITY (GOOGLE OAUTH)
+// ==========================================
+
+export async function signInWithGoogle() {
+  if (isDemoMode || !supabase) {
+    alert('Modo Demo activo. No se puede iniciar sesión.');
+    return;
+  }
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin
+    }
+  });
+}
+
+export async function signOut() {
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
+}
+
+// ==========================================
+// STORAGE: COMPRESS & UPLOAD IMAGES
+// ==========================================
+
+export async function uploadTacticalImage(file: File): Promise<string | null> {
+  if (isDemoMode || !supabase) return URL.createObjectURL(file); // Fake URL for demo
+
+  const fileExt = 'webp'; // Siempre guardamos como webp comprimido
+  const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+  const filePath = `reports/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from('tactical_images')
+    .upload(filePath, file, { contentType: 'image/webp' });
+
+  if (error) {
+    console.error('Error uploading image:', error);
+    return null;
+  }
+
+  const { data: publicData } = supabase.storage
+    .from('tactical_images')
+    .getPublicUrl(filePath);
+
+  return publicData.publicUrl;
+}

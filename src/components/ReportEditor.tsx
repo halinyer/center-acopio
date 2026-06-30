@@ -7,12 +7,13 @@ import type { LocationRow } from '../lib/supabase';
 type ReportEditorProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (content: string, isCritical: boolean, linkedCenter?: string, contactPhone?: string, imageUrl?: string) => void;
+  onSubmit: (content: string, isCritical: boolean, linkedCenter?: string, contactPhone?: string, imageFile?: File) => void;
   contextLocation?: string; 
   locations?: LocationRow[];
+  authUser?: any;
 };
 
-export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locations = [] }: ReportEditorProps) => {
+export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locations = [], authUser }: ReportEditorProps) => {
   const [content, setContent] = useState('');
   const [isCritical, setIsCritical] = useState(false);
   const [contactPhone, setContactPhone] = useState('');
@@ -22,27 +23,76 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
   const [centerSearchQuery, setCenterSearchQuery] = useState('');
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const max = 800;
+          
+          if (width > height && width > max) {
+            height *= max / width;
+            width = max;
+          } else if (height > max) {
+            width *= max / height;
+            height = max;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return reject('No ctx');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(new File([blob], 'compressed.webp', { type: 'image/webp' }));
+            } else {
+              reject('Blob failed');
+            }
+          }, 'image/webp', 0.8);
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Mock de compresión y preview pre-Supabase
-      const reader = new FileReader();
-      reader.onload = (evt) => setImagePreview(evt.target?.result as string);
-      reader.readAsDataURL(file);
+      setIsCompressing(true);
+      try {
+        const compressed = await compressImage(file);
+        setImageFile(compressed);
+        setImagePreview(URL.createObjectURL(compressed));
+      } catch (err) {
+        console.error('Error compressing image', err);
+      }
+      setIsCompressing(false);
     }
   };
 
   const handleSubmit = () => {
     if (!content.trim() && !imagePreview) return;
-    onSubmit(content, isCritical, linkedCenter, isCritical ? contactPhone.trim() : undefined, imagePreview || undefined);
+    onSubmit(content, isCritical, linkedCenter, isCritical ? contactPhone.trim() : undefined, imageFile || undefined);
     setContent('');
     setIsCritical(false);
     setContactPhone('');
     setShowCenterSearch(false);
     setCenterSearchQuery('');
     setImagePreview(null);
+    setImageFile(null);
     onClose();
   };
 
@@ -58,15 +108,15 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
           <button 
             className="editor-submit-btn-small" 
             onClick={handleSubmit}
-            disabled={!content.trim() && !imagePreview}
+            disabled={(!content.trim() && !imagePreview) || isCompressing}
           >
-            Publicar
+            {isCompressing ? 'Procesando...' : 'Publicar'}
           </button>
         </div>
         
         <div className="editor-body" style={{ position: 'relative' }}>
           <div style={{ display: 'flex', gap: '12px', width: '100%', opacity: showCenterSearch ? 0 : 1, pointerEvents: showCenterSearch ? 'none' : 'auto' }}>
-            <img src="https://i.pravatar.cc/150?u=current" alt="Avatar" className="editor-avatar" />
+            <img src={authUser?.user_metadata?.avatar_url || 'https://i.pravatar.cc/150?u=current'} alt="Avatar" className="editor-avatar" />
             
             <div className="editor-input-area">
               <textarea 
