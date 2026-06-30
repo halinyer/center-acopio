@@ -516,21 +516,13 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 }
 .details-go-btn:active { background: #1d4ed8; }
 
-/* ========== AUTH MODAL ========== */
-.auth-card {
-  background: var(--white); border-radius: var(--radius); padding: 24px;
-  width: 90%; max-width: 400px; box-shadow: var(--shadow-lg);
-  display: flex; flex-direction: column; gap: 16px;
-  animation: chipIn 0.3s ease;
-}
-.auth-card h2 { font-size: 18px; font-weight: 800; color: var(--gray-900); }
-.auth-card p { font-size: 14px; color: var(--gray-600); line-height: 1.4; }
-.auth-card input {
+/* ========== AUTH FORM (Inside Help-Sheet) ========== */
+.auth-input {
   width: 100%; padding: 12px; border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-sm); font-family: var(--font);
   font-size: 15px; margin-bottom: 16px; outline: none;
 }
-.auth-card input:focus { border-color: var(--blue); }
+.auth-input:focus { border-color: var(--blue); }
 .auth-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-cancel {
   padding: 10px 16px; background: var(--gray-100); color: var(--gray-700);

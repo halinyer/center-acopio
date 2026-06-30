@@ -791,7 +791,6 @@ function App() {
                 <Bell size={18} />
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
-              {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
             <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
             <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
           </div>
@@ -830,23 +829,28 @@ function App() {
 
 
       {/* AUTH MODAL */}
-      <SwipeableSheet isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} className="auth-card">
+      <SwipeableSheet isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} className="help-sheet">
             <div className="list-handle" />
-            <h2 style={{display:'flex', alignItems:'center', gap:'8px', margin: '0 0 12px 0'}}><Lock size={20} /> Registrar un Centro</h2>
-            <SupportContact />
-            <form onSubmit={handleAuthSubmit}>
-              <input 
-                type="password" 
-                value={authCode} 
-                onChange={(e) => setAuthCode(e.target.value)} 
-                placeholder="Ingresa tu código..." 
-                autoFocus 
-              />
-              <div className="auth-actions">
-                <button type="button" className="btn-cancel" onClick={() => setShowAuthModal(false)}>Cancelar</button>
-                <button type="submit" className="btn-submit-auth">Verificar</button>
-              </div>
-            </form>
+            <div className="modal-header">
+              <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><Lock size={20} /> Registrar Centro</h2>
+              <button className="modal-close" onClick={() => setShowAuthModal(false)}>✕</button>
+            </div>
+            <div className="help-body">
+              <SupportContact />
+              <form onSubmit={handleAuthSubmit}>
+                <input 
+                  type="password" 
+                  value={authCode} 
+                  onChange={(e) => setAuthCode(e.target.value)} 
+                  placeholder="Ingresa tu código..." 
+                  className="auth-input"
+                />
+                <div className="auth-actions">
+                  <button type="button" className="btn-cancel" onClick={() => setShowAuthModal(false)}>Cancelar</button>
+                  <button type="submit" className="btn-submit-auth">Verificar</button>
+                </div>
+              </form>
+            </div>
       </SwipeableSheet>
 
       {/* HELP MODAL */}
