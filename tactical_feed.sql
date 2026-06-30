@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.tactical_feed (
     is_critical BOOLEAN DEFAULT false,
     contact_phone TEXT,
     image_url TEXT,
-    linked_center_id UUID REFERENCES public.acopios(id) ON DELETE SET NULL,
+    linked_center_id UUID REFERENCES public.locations(id) ON DELETE SET NULL,
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
     zone TEXT NOT NULL,

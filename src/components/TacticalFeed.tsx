@@ -196,7 +196,7 @@ export const TacticalFeed = ({
     } else {
       navigator.clipboard.writeText(`${shareText}\n\n🔗 Enlace: ${shareUrl}`);
       if (onNotify) {
-        onNotify("Enlace copiado al portapapeles");
+        onNotify("Enlace Copiado", "El texto y enlace se copiaron al portapapeles", "info");
       } else {
         alert("Enlace copiado al portapapeles");
       }
