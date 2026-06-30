@@ -910,6 +910,7 @@ function App() {
             userLng={userPos?.lng}
             locations={acopios}
             authUser={authUser}
+            onNotify={showToast}
             onRequestLogin={() => {
               localStorage.setItem('tactical_login_intent', 'support');
               setShowLoginSheet(true);

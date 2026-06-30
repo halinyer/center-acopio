@@ -23,6 +23,7 @@ type TacticalFeedProps = {
   authUser?: any;
   onRequestLogin?: () => void;
   onScrollDir?: (dir: 'up' | 'down') => void;
+  onNotify?: (title: string, desc: string, type?: 'info'|'warning'|'error') => void;
 };
 
 export const TacticalFeed = ({ 
@@ -33,7 +34,8 @@ export const TacticalFeed = ({
   locations,
   authUser,
   onRequestLogin,
-  onScrollDir
+  onScrollDir,
+  onNotify
 }: TacticalFeedProps) => {
   const [posts, setPosts] = useState<TacticalPost[]>([]);
   const [newPostsQueue, setNewPostsQueue] = useState<TacticalPost[]>([]);
@@ -102,16 +104,24 @@ export const TacticalFeed = ({
       try {
         const pending = JSON.parse(raw);
         if (pending.length === 0) return;
-        let successCount = 0;
+        let failedCount = 0;
         for (const p of pending) {
           const { id, created_at, supports_count, relevance_score, distance_km, ...cleanPost } = p;
           const { error } = await supabase.from('tactical_feed').insert([cleanPost]);
-          if (!error) successCount++;
+          if (error) failedCount++;
         }
-        if (successCount === pending.length) {
-          localStorage.removeItem('tactical_outbox');
-          setOutbox([]);
-          getTacticalFeed(lat, lng, undefined, undefined, undefined, 15).then(data => setPosts(data));
+        
+        // Purga incondicional de los fantasmas (evita bucles de error por sesión expirada)
+        localStorage.removeItem('tactical_outbox');
+        setOutbox([]);
+        getTacticalFeed(lat, lng, undefined, undefined, undefined, 15).then(data => setPosts(data));
+        
+        if (failedCount > 0) {
+          onNotify?.(
+            'Error en Buzón de Salida',
+            `${failedCount} reporte(s) fallaron la validación del servidor (probablemente tu sesión expiró o faltaban datos) y fueron descartados.`,
+            'error'
+          );
         }
       } catch (e) {}
     };
