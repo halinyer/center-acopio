@@ -46,6 +46,7 @@ export interface TacticalPost {
   author_name: string;
   author_avatar?: string;
   content: string;
+  image_url?: string;
   is_critical: boolean;
   contact_phone?: string;
   linked_center_id?: string;
@@ -62,6 +63,7 @@ export const DEMO_POSTS: TacticalPost[] = [
     author_name: 'Carlos M.',
     author_avatar: 'https://i.pravatar.cc/150?u=carlos',
     content: 'Se accidentó el camión con 20 cajas de agua en la autopista, necesitamos a alguien con grúa o transporte para mover la carga.',
+    image_url: 'https://images.unsplash.com/photo-1581093588401-fbb62a02f120?auto=format&fit=crop&q=80&w=800',
     is_critical: true,
     contact_phone: '584121234567',
     linked_center_id: 'c2', // Hospital CHET

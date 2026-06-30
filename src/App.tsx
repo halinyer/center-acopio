@@ -908,7 +908,7 @@ function App() {
         onClose={() => setShowReportModal(false)} 
         contextLocation={selectedLoc ? selectedLoc.name : undefined}
         locations={acopios}
-        onSubmit={async (content, isCritical, linkedCenterName, contactPhone) => {
+        onSubmit={async (content, isCritical, linkedCenterName, contactPhone, imageUrl) => {
           // Resolve linked center ID from name if provided
           let linked_center_id = undefined;
           if (linkedCenterName) {
@@ -921,6 +921,7 @@ function App() {
             content,
             is_critical: isCritical,
             contact_phone: contactPhone,
+            image_url: imageUrl,
             linked_center_id,
             lat: userPos?.lat || 10.4806,
             lng: userPos?.lng || -66.9036,

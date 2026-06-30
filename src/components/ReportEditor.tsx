@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { SwipeableSheet } from './SwipeableSheet';
 import { AlertTriangle, MapPin, Image as ImageIcon } from 'lucide-react';
 
@@ -7,7 +7,7 @@ import type { LocationRow } from '../lib/supabase';
 type ReportEditorProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (content: string, isCritical: boolean, linkedCenter?: string, contactPhone?: string) => void;
+  onSubmit: (content: string, isCritical: boolean, linkedCenter?: string, contactPhone?: string, imageUrl?: string) => void;
   contextLocation?: string; 
   locations?: LocationRow[];
 };
@@ -21,14 +21,28 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
   const [showCenterSearch, setShowCenterSearch] = useState(false);
   const [centerSearchQuery, setCenterSearchQuery] = useState('');
 
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Mock de compresión y preview pre-Supabase
+      const reader = new FileReader();
+      reader.onload = (evt) => setImagePreview(evt.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = () => {
-    if (!content.trim()) return;
-    onSubmit(content, isCritical, linkedCenter, isCritical ? contactPhone.trim() : undefined);
+    if (!content.trim() && !imagePreview) return;
+    onSubmit(content, isCritical, linkedCenter, isCritical ? contactPhone.trim() : undefined, imagePreview || undefined);
     setContent('');
     setIsCritical(false);
     setContactPhone('');
     setShowCenterSearch(false);
     setCenterSearchQuery('');
+    setImagePreview(null);
     onClose();
   };
 
@@ -44,7 +58,7 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
           <button 
             className="editor-submit-btn-small" 
             onClick={handleSubmit}
-            disabled={!content.trim()}
+            disabled={!content.trim() && !imagePreview}
           >
             Publicar
           </button>
@@ -63,6 +77,16 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
                 autoFocus={false}
               />
               
+              {imagePreview && (
+                <div style={{ position: 'relative', marginTop: '4px', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
+                  <button 
+                    onClick={() => setImagePreview(null)}
+                    style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >✕</button>
+                </div>
+              )}
+
               {isCritical && (
                 <div style={{ marginTop: '8px', padding: '8px', background: '#fee2e2', borderRadius: '12px', border: '1px solid #fecaca' }}>
                   <input 
@@ -137,9 +161,16 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
             >
               <MapPin size={20} />
             </button>
-            <button className="editor-tool-btn" title="Adjuntar Imagen (Próximamente)">
+            <button className="editor-tool-btn" title="Adjuntar Imagen" onClick={() => fileInputRef.current?.click()}>
               <ImageIcon size={20} />
             </button>
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              onChange={handleImageSelect} 
+            />
             <button 
               className={`editor-tool-btn critical ${isCritical ? 'active' : ''}`}
               title="Marcar como Crítico"

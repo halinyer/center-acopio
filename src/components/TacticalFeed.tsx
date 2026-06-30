@@ -96,6 +96,12 @@ export const TacticalFeed = ({ filter, onCenterClick, locations }: { filter: 'to
             
             <p className="feed-content">{post.content}</p>
             
+            {post.image_url && (
+              <div style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden' }}>
+                <img src={post.image_url} alt="Evidencia del reporte" style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', display: 'block' }} />
+              </div>
+            )}
+            
             {post.linked_center_id && (
               <div className="feed-linked-badge" onClick={() => onCenterClick?.(post.linked_center_id!)} style={{cursor: 'pointer'}}>
                 <MapPin size={12} /> {locations?.find(l => l.id === post.linked_center_id)?.name || `Vincular Centro (${post.linked_center_id.slice(0,4)})`}
