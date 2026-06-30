@@ -742,8 +742,9 @@ function App() {
         else setShowReportModal(true);
       },
       isPrimary: true
-    }
   ];
+
+  const [navHidden, setNavHidden] = useState(false);
 
   const mapActions = [
     {
@@ -861,13 +862,13 @@ function App() {
           <div className="view-switch">
             <button 
               className={`switch-btn ${viewMode === 'mapa' ? 'active' : ''}`}
-              onClick={() => setViewMode('mapa')}
+              onClick={() => { setViewMode('mapa'); setNavHidden(false); }}
             >
               Mapa
             </button>
             <button 
               className={`switch-btn ${viewMode === 'reportes' ? 'active' : ''}`}
-              onClick={() => setViewMode('reportes')}
+              onClick={() => { setViewMode('reportes'); setNavHidden(false); }}
             >
               Noticias
             </button>
@@ -919,12 +920,17 @@ function App() {
                 setFlyTarget({ lat: 10.2310, lng: -66.8631, zoom: 17 });
               }
             }}
+            onScrollDir={(dir) => setNavHidden(dir === 'down')}
           />
         </div>
       </div>
 
       {!placingMode && !showList && (
-        <DynamicBottomNav actions={viewMode === 'mapa' ? mapActions : reportesActions} />
+        <div style={{ transform: navHidden ? 'translateY(150%)' : 'translateY(0)', transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1000, pointerEvents: 'none' }}>
+          <div style={{ pointerEvents: 'auto' }}>
+            <DynamicBottomNav actions={viewMode === 'mapa' ? mapActions : reportesActions} />
+          </div>
+        </div>
       )}
 
 

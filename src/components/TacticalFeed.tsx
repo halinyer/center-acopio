@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Clock, MapPin, Check, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
 import { getTacticalFeed, subscribeToTacticalFeed, supabase } from '../lib/supabase';
 import type { TacticalPost, LocationRow } from '../lib/supabase';
@@ -277,7 +278,7 @@ export const TacticalFeed = ({
         )}
       </div>
 
-      {viewerPost && (
+      {viewerPost && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', color: 'white', zIndex: 2 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -335,7 +336,8 @@ export const TacticalFeed = ({
               ) : null}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
