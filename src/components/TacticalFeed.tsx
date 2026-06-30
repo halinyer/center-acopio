@@ -39,6 +39,7 @@ export const TacticalFeed = ({
   const [newPostsQueue, setNewPostsQueue] = useState<TacticalPost[]>([]);
   const [outbox, setOutbox] = useState<TacticalPost[]>([]);
   const [viewerPost, setViewerPost] = useState<TacticalPost | null>(null);
+  const [optionsPostId, setOptionsPostId] = useState<string | null>(null);
   
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -305,18 +306,34 @@ export const TacticalFeed = ({
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {authUser && post.user_id === authUser.id && (
-                    <button 
-                      className="feed-options-btn" 
-                      title="Eliminar reporte" 
-                      onClick={() => handleDelete(post.id)}
-                      style={{ color: 'var(--gray-400)' }}
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                <div style={{ position: 'relative' }}>
+                  <button 
+                    className="feed-options-btn" 
+                    title="Opciones"
+                    onClick={() => setOptionsPostId(optionsPostId === post.id ? null : post.id)}
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                  
+                  {optionsPostId === post.id && (
+                    <div style={{ position: 'absolute', right: 0, top: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '4px', zIndex: 10, boxShadow: 'var(--shadow-md)', minWidth: '150px' }}>
+                      {authUser && (post.user_id === authUser.id || post.author_name === authUser?.user_metadata?.full_name) ? (
+                        <button 
+                          onClick={() => { handleDelete(post.id); setOptionsPostId(null); }}
+                          style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '12px', background: 'transparent', border: 'none', color: 'var(--red)', fontWeight: '500', cursor: 'pointer', textAlign: 'left', borderRadius: '8px' }}
+                        >
+                          <Trash2 size={16} /> Eliminar
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => { alert('Función de reportar próximamente'); setOptionsPostId(null); }}
+                          style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '12px', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontWeight: '500', cursor: 'pointer', textAlign: 'left', borderRadius: '8px' }}
+                        >
+                          Reportar
+                        </button>
+                      )}
+                    </div>
                   )}
-                  <button className="feed-options-btn" title="Opciones"><MoreHorizontal size={18} /></button>
                 </div>
               </div>
               
