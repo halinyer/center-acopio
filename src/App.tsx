@@ -503,7 +503,7 @@ function App() {
     const startTime = Date.now();
     const finishLocating = () => {
       const elapsed = Date.now() - startTime;
-      const delay = Math.max(0, 3000 - elapsed);
+      const delay = Math.max(0, 1000 - elapsed);
       setTimeout(() => setLocating(false), delay);
     };
 
