@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { SwipeableSheet } from './components/SwipeableSheet';
 import { DynamicBottomNav } from './components/DynamicBottomNav';
+import { TacticalFeed } from './components/TacticalFeed';
 import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, PenLine } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
@@ -854,13 +855,10 @@ function App() {
          </div>
       )}
 
-      {/* VISTA DE REPORTES (Placeholder por ahora) */}
+      {/* VISTA DE REPORTES */}
       {viewMode === 'reportes' && (
         <div className="tactical-feed-view">
-          <div className="tactical-feed-content">
-             <h3>Novedades Tácticas</h3>
-             <p>El feed de reportes estará aquí...</p>
-          </div>
+          <TacticalFeed />
           {!placingMode && !showList && (
             <DynamicBottomNav actions={reportesActions} />
           )}
