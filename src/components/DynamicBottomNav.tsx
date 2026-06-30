@@ -5,6 +5,7 @@ export type NavAction = {
   label: React.ReactNode;
   onClick: () => void;
   isPrimary?: boolean;
+  isActive?: boolean;
 };
 
 export const DynamicBottomNav = ({ actions }: { actions: NavAction[] }) => {
@@ -13,7 +14,7 @@ export const DynamicBottomNav = ({ actions }: { actions: NavAction[] }) => {
       {actions.map((action, i) => (
         <button 
           key={i} 
-          className={`nav-btn ${action.isPrimary ? 'primary' : ''}`} 
+          className={`nav-btn ${action.isPrimary ? 'primary' : ''} ${action.isActive ? 'active' : ''}`} 
           onClick={action.onClick}
         >
           {action.icon}

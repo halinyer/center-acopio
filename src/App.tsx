@@ -104,6 +104,7 @@ function App() {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [acopios, setAcopios] = useState<LocationRow[]>([]);
   const [viewMode, setViewMode] = useState<'mapa' | 'reportes'>('mapa');
+  const [feedFilter, setFeedFilter] = useState<'todo' | 'alertas'>('todo');
   
   // Refs para evitar re-suscripción en WebSockets
   const userPosRef = useRef(userPos);
@@ -688,18 +689,20 @@ function App() {
     {
       icon: <Newspaper size={20} />,
       label: 'Todo',
-      onClick: () => console.log('Ver Todo')
+      onClick: () => setFeedFilter('todo'),
+      isActive: feedFilter === 'todo'
     },
     {
       icon: <AlertTriangle size={20} />,
       label: 'Alertas',
-      onClick: () => console.log('Ver Alertas'),
-      isPrimary: true
+      onClick: () => setFeedFilter('alertas'),
+      isActive: feedFilter === 'alertas'
     },
     {
       icon: <PenLine size={20} />,
       label: 'Reportar',
-      onClick: () => setShowAuthModal(true)
+      onClick: () => setShowAuthModal(true),
+      isPrimary: true
     }
   ];
 
@@ -858,7 +861,7 @@ function App() {
       {/* VISTA DE REPORTES */}
       {viewMode === 'reportes' && (
         <div className="tactical-feed-view">
-          <TacticalFeed />
+          <TacticalFeed filter={feedFilter} />
           {!placingMode && !showList && (
             <DynamicBottomNav actions={reportesActions} />
           )}

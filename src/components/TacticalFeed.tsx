@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Clock, MapPin, Check, MoreHorizontal } from 'lucide-react';
 
 const mockPosts = [
@@ -11,6 +10,7 @@ const mockPosts = [
     time: 'Hace 5 min',
     isCritical: true,
     linkedCenter: null,
+    supports: 12
   },
   {
     id: 2,
@@ -21,6 +21,7 @@ const mockPosts = [
     time: 'Hace 12 min',
     isCritical: false,
     linkedCenter: 'Hospital CHET',
+    supports: 45
   },
   {
     id: 3,
@@ -31,22 +32,15 @@ const mockPosts = [
     time: 'Hace 22 min',
     isCritical: false,
     linkedCenter: 'Iglesia San José (Petare)',
+    supports: 8
   }
 ];
 
-export const TacticalFeed = () => {
-  const [filter, setFilter] = useState<'todo' | 'alertas'>('todo');
+export const TacticalFeed = ({ filter }: { filter: 'todo' | 'alertas' }) => {
   const displayedPosts = filter === 'alertas' ? mockPosts.filter(p => p.isCritical) : mockPosts;
 
   return (
     <div className="tactical-feed-container">
-      <div className="feed-header-blur">
-        <div className="feed-filter-pills">
-          <button className={`feed-pill ${filter === 'todo' ? 'active' : ''}`} onClick={() => setFilter('todo')}>Todo</button>
-          <button className={`feed-pill ${filter === 'alertas' ? 'active' : ''}`} onClick={() => setFilter('alertas')}>Alertas</button>
-        </div>
-      </div>
-
       <div className="feed-list">
         {displayedPosts.map((post) => (
           <div key={post.id} className="feed-card">
@@ -76,7 +70,7 @@ export const TacticalFeed = () => {
             
             <div className="feed-card-actions">
               <button className="action-btn-subtle">
-                <Check size={16} /> Respaldar
+                <Check size={16} /> Respaldar ({post.supports})
               </button>
             </div>
           </div>
