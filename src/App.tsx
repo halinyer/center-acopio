@@ -927,7 +927,7 @@ function App() {
       </div>
 
       {!placingMode && !showList && (
-        <div style={{ transform: navHidden ? 'translateY(150%)' : 'translateY(0)', transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1000, pointerEvents: 'none' }}>
+        <div style={{ transform: navHidden ? 'translateY(100px)' : 'translateY(0)', transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1000, pointerEvents: 'none' }}>
           <div style={{ pointerEvents: 'auto' }}>
             <DynamicBottomNav actions={viewMode === 'mapa' ? mapActions : reportesActions} />
           </div>
