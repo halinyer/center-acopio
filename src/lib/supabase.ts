@@ -121,12 +121,17 @@ export function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Geocodificaci├│n inversa
+// Geocodificación inversa optimizada para Ciudad, Estado
 export async function reverseGeocode(lat: number, lng: number): Promise<string> {
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
     const data = await res.json();
+    const a = data.address || {};
+    const city = a.city || a.town || a.village || a.county || '';
+    const state = a.state || '';
+    if (city && state) return `${city}, ${state}`;
+    if (state) return state;
     return data.display_name || '';
   } catch {
     return '';

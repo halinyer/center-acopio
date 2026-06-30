@@ -195,8 +195,16 @@ export const TacticalFeed = ({
                   <button 
                     className="action-btn-subtle"
                     onClick={() => {
-                      if (!authUser) onRequestLogin?.();
-                      else alert('¡Respaldo registrado!'); // TODO: Supabase RPC for support
+                      if (!authUser) {
+                        onRequestLogin?.();
+                        return;
+                      }
+                      const supported = JSON.parse(localStorage.getItem('tactical_supported') || '{}');
+                      if (supported[post.id]) return; // Already supported locally
+                      
+                      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, supports_count: p.supports_count + 1 } : p));
+                      supported[post.id] = true;
+                      localStorage.setItem('tactical_supported', JSON.stringify(supported));
                     }}
                   >
                     <Check size={16} /> Respaldar ({post.supports_count})
