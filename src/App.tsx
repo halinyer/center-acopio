@@ -4,7 +4,7 @@ import { DynamicBottomNav } from './components/DynamicBottomNav';
 import { TacticalFeed } from './components/TacticalFeed';
 import { ReportEditor } from './components/ReportEditor';
 import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation, publishTacticalReport, signInWithGoogle, uploadTacticalImage } from './lib/supabase';
-import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, Megaphone } from 'lucide-react';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, Megaphone, LogOut } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -903,6 +903,15 @@ function App() {
           </div>
 
           <div className="top-actions">
+              {authUser && viewMode === 'reportes' && (
+                <button 
+                  className="btn-circle" 
+                  onClick={handleLogout} 
+                  title="Cerrar sesión"
+                >
+                  <LogOut size={18} />
+                </button>
+              )}
               <button 
                 className="btn-circle" 
                 style={{position: 'relative'}} 
