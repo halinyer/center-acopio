@@ -1132,6 +1132,32 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   border: none; border-radius: 20px; padding: 6px 16px;
   font-size: 14px; font-weight: 700; cursor: pointer;
 }
+
+/* ========== GOOGLE AUTH BUTTON ========== */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  background-color: #ffffff;
+  color: #3c4043;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px 16px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.btn-google:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+}
+.btn-google:active {
+  background-color: #f1f3f4;
+}
 .editor-submit-btn-small:disabled { background: var(--gray-200); color: var(--gray-500); cursor: not-allowed; }
 
 .editor-body { display: flex; gap: 12px; align-items: flex-start; }
