@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Check, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
-import { getTacticalFeed, subscribeToTacticalFeed, supabase, getDistanceKm } from '../lib/supabase';
+import { MapPin, Check, MoreHorizontal, Share, MessageCircle, Trash2 } from 'lucide-react';
+import { getTacticalFeed, subscribeToTacticalFeed, supabase, getDistanceKm, deleteTacticalReport } from '../lib/supabase';
 import type { TacticalPost, LocationRow } from '../lib/supabase';
 
 function timeAgo(dateString: string): string {
@@ -47,6 +47,17 @@ export const TacticalFeed = ({
   // Coordenadas reales del usuario
   const lat = userLat ?? 10.4806;
   const lng = userLng ?? -66.9036;
+
+  const handleDelete = async (id: string) => {
+    if (confirm('¿Seguro que quieres eliminar este reporte?')) {
+      const success = await deleteTacticalReport(id);
+      if (success) {
+        setPosts(prev => prev.filter(p => p.id !== id));
+      } else {
+        alert('Error al eliminar. Revisa tu conexión.');
+      }
+    }
+  };
 
   // Infinite Scroll Observer
   const observer = useRef<IntersectionObserver | null>(null);
@@ -294,7 +305,19 @@ export const TacticalFeed = ({
                     </div>
                   </div>
                 </div>
-                <button className="feed-options-btn" title="Opciones"><MoreHorizontal size={18} /></button>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {authUser && post.user_id === authUser.id && (
+                    <button 
+                      className="feed-options-btn" 
+                      title="Eliminar reporte" 
+                      onClick={() => handleDelete(post.id)}
+                      style={{ color: 'var(--gray-400)' }}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
+                  <button className="feed-options-btn" title="Opciones"><MoreHorizontal size={18} /></button>
+                </div>
               </div>
               
               <p className="feed-content">{post.content}</p>

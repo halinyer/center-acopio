@@ -317,6 +317,16 @@ export async function publishTacticalReport(post: Omit<TacticalPost, 'id' | 'cre
   }
 }
 
+export async function deleteTacticalReport(id: string): Promise<boolean> {
+  if (isDemoMode || !supabase) return true;
+  const { error } = await supabase.from('tactical_feed').delete().eq('id', id);
+  if (error) {
+    console.error('Error deleting report:', error);
+    return false;
+  }
+  return true;
+}
+
 // ==========================================
 // AUTHENTICATION & IDENTITY (GOOGLE OAUTH)
 // ==========================================
