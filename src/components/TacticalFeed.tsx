@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Clock, MapPin, Check, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
+import { MapPin, Check, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
 import { getTacticalFeed, subscribeToTacticalFeed, supabase, getDistanceKm } from '../lib/supabase';
 import type { TacticalPost, LocationRow } from '../lib/supabase';
 
@@ -80,6 +80,7 @@ export const TacticalFeed = ({
 
     const syncOutbox = async () => {
       if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+      if (!supabase) return;
       const raw = localStorage.getItem('tactical_outbox');
       if (!raw) return;
       try {
@@ -185,7 +186,7 @@ export const TacticalFeed = ({
 
   const displayedPosts = filter === 'alertas' ? posts.filter(p => p.is_critical) : posts;
 
-  if (displayedPosts.length === 0 && newPostsQueue.length === 0) {
+  if (displayedPosts.length === 0 && newPostsCount === 0) {
     return <div className="tactical-feed-container" style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>No hay reportes recientes en tu zona.</div>;
   }
 
