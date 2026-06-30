@@ -270,9 +270,11 @@ export const TacticalFeed = ({
       <div className="feed-list">
         {outbox.map((post) => (
           <div key={post.id} className="feed-card" style={{ opacity: 0.6 }}>
-            <div className="feed-card-top">
-              <div className="feed-author-block">
-                <img src={post.author_avatar || 'https://i.pravatar.cc/150?u=anon'} alt="avatar" className="feed-avatar" />
+            <div className="feed-left-col">
+              <img src={post.author_avatar || 'https://i.pravatar.cc/150?u=anon'} alt="avatar" className="feed-avatar" />
+            </div>
+            <div className="feed-right-col">
+              <div className="feed-header">
                 <div className="feed-author-meta">
                   <div className="feed-author-name">
                     {post.author_name}
@@ -284,13 +286,13 @@ export const TacticalFeed = ({
                   </div>
                 </div>
               </div>
-            </div>
-            <p className="feed-content">{post.content}</p>
+              <p className="feed-content">{post.content}</p>
             {post.image_url && (
               <div className="feed-media-container">
                 <img src={post.image_url} alt="media" className="feed-media" />
               </div>
             )}
+            </div>
           </div>
         ))}
 
@@ -302,9 +304,11 @@ export const TacticalFeed = ({
               className="feed-card"
               ref={isLastPost ? lastPostElementRef : null}
             >
-              <div className="feed-card-top">
-                <div className="feed-author-block">
-                  <img src={post.author_avatar || 'https://i.pravatar.cc/150?u=anon'} alt="avatar" className="feed-avatar" />
+              <div className="feed-left-col">
+                <img src={post.author_avatar || 'https://i.pravatar.cc/150?u=anon'} alt="avatar" className="feed-avatar" />
+              </div>
+              <div className="feed-right-col">
+                <div className="feed-header">
                   <div className="feed-author-meta">
                     <div className="feed-author-name">
                       {post.author_name}
@@ -315,8 +319,7 @@ export const TacticalFeed = ({
                       {timeAgo(post.created_at)} {post.zone ? `· ${post.zone}` : ''}
                     </div>
                   </div>
-                </div>
-                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative' }}>
                   <button 
                     className="feed-options-btn" 
                     title="Opciones"
@@ -351,10 +354,11 @@ export const TacticalFeed = ({
               
               {post.image_url && (
                 <div 
-                  style={{ marginTop: '12px', overflow: 'hidden', cursor: 'pointer' }}
+                  className="feed-media-container"
+                  style={{ cursor: 'pointer' }}
                   onClick={() => setViewerPost(post)}
                 >
-                  <img src={post.image_url} alt="Evidencia" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', display: 'block' }} />
+                  <img src={post.image_url} alt="Evidencia" className="feed-media" />
                 </div>
               )}
               
@@ -388,7 +392,7 @@ export const TacticalFeed = ({
                       }
                     }}
                   >
-                    <Check size={16} /> Respaldar ({post.supports_count})
+                    <Check size={16} /> Respaldar {post.supports_count > 0 ? `(${post.supports_count})` : ''}
                   </button>
                   <button className="action-btn-subtle" onClick={() => handleShare(post)}>
                     <Share size={16} /> Compartir
@@ -412,6 +416,7 @@ export const TacticalFeed = ({
                     <MessageCircle size={16} /> Contactar
                   </button>
                 ) : null}
+              </div>
               </div>
             </div>
           );
