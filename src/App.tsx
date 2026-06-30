@@ -855,7 +855,13 @@ function App() {
       </div>
 
       {!placingMode && (
-        <div className="top-bar">
+        <div 
+          className="top-bar"
+          style={{ 
+            transform: (viewMode === 'reportes' && navHidden) ? 'translateY(-100px)' : 'translateY(0)', 
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' 
+          }}
+        >
           <div className="brand">
             <div className="brand-icon"><Package size={24} color="white" /></div>
             {/* Ocultamos el texto en pantallas muy pequeñas para dar espacio al switch */}
