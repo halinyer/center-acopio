@@ -199,7 +199,7 @@ export const TacticalFeed = ({
               
               {post.image_url && (
                 <div 
-                  style={{ marginTop: '12px', borderRadius: '16px', overflow: 'hidden', cursor: 'pointer', border: '1px solid var(--gray-200)' }}
+                  style={{ marginTop: '12px', overflow: 'hidden', cursor: 'pointer' }}
                   onClick={() => setViewerPost(post)}
                 >
                   <img src={post.image_url} alt="Evidencia" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', display: 'block' }} />
