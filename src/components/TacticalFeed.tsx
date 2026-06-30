@@ -207,7 +207,11 @@ export const TacticalFeed = ({
                       localStorage.setItem('tactical_supported', JSON.stringify(supported));
                       
                       // Enviar a Supabase para que sea permanente
-                      supabase.rpc('increment_support', { p_post_id: post.id }).catch(console.error);
+                      if (supabase) {
+                        supabase.rpc('increment_support', { p_post_id: post.id }).then(({ error }) => {
+                          if (error) console.error(error);
+                        });
+                      }
                     }}
                   >
                     <Check size={16} /> Respaldar ({post.supports_count})
