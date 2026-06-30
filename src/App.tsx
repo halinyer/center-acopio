@@ -963,6 +963,7 @@ function App() {
           }
           
             const post = {
+              user_id: authUser.id,
               author_name: authUser?.user_metadata?.full_name || 'Voluntario',
               author_avatar: authUser?.user_metadata?.avatar_url || '',
               content,
