@@ -1,0 +1,17 @@
+/* TEAM ACOPIOVEN */
+
+Founder & Lead Developer: Halinyer Leon
+UI/UX & Graphic Designer: Jhonatan Fermin (IG: @jhonatan.fermin.x5)
+Developer & QA Tester: Samuel Reinoza (IG: @sam_dav06)
+Promoter: Ricardo (IG: @stfu.pphy)
+QA Tester & Promoter: Manuel Alejandro
+
+/* SITE */
+Last update: 2026
+Language: Spanish
+Tech: React, TypeScript, Supabase, Leaflet, Vite
+URL: https://www.acopioven.com/
+Official Instagram: https://www.instagram.com/acopioven/
+
+/* FILOSOFIA */
+"Fricción Cero. Convertir el texto en acción. En una crisis de vida o muerte, cada segundo cuenta."
