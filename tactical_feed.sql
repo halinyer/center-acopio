@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public.tactical_feed (
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     author_name TEXT NOT NULL,
     author_avatar TEXT,
-    content TEXT NOT NULL CHECK (char_length(content) <= 280),
+    content TEXT NOT NULL CHECK (char_length(content) <= 500),
     is_critical BOOLEAN DEFAULT false,
     contact_phone TEXT,
     image_url TEXT,
