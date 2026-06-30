@@ -381,6 +381,12 @@ function App() {
     alert('✅ Modo Administrador desbloqueado. Ahora puedes agregar puntos.');
   };
 
+  const handleLogout = async () => {
+    if (supabase) await supabase.auth.signOut();
+    setAuthUser(null);
+    localStorage.removeItem('tactical_login_intent');
+  };
+
   const fetchAcopios = useCallback(async () => {
     if (isDemoMode || !supabase) { setAcopios(DEMO_ACOPIOS); return; }
     const { data, error } = await supabase.from('locations').select('*')
