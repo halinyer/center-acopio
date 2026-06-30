@@ -306,7 +306,7 @@ export const TacticalFeed = ({
                   setPosts(prev => prev.map(p => p.id === viewerPost.id ? { ...p, supports_count: p.supports_count + 1 } : p));
                   supported[viewerPost.id] = true;
                   localStorage.setItem('tactical_supported', JSON.stringify(supported));
-                  if (supabase) supabase.rpc('increment_support', { p_post_id: viewerPost.id }).catch(() => {});
+                  if (supabase) supabase.rpc('increment_support', { p_post_id: viewerPost.id }).then(({error}) => { if(error) console.error(error); });
                   setViewerPost(prev => prev ? { ...prev, supports_count: prev.supports_count + 1 } : null);
                 }}
               >
