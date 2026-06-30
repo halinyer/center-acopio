@@ -3,7 +3,7 @@ import { SwipeableSheet } from './components/SwipeableSheet';
 import { DynamicBottomNav } from './components/DynamicBottomNav';
 import { TacticalFeed } from './components/TacticalFeed';
 import { ReportEditor } from './components/ReportEditor';
-import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation } from './lib/supabase';
+import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation, publishTacticalReport } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, PenLine } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
@@ -865,8 +865,9 @@ function App() {
         <div className="tactical-feed-view">
           <TacticalFeed 
             filter={feedFilter} 
-            onCenterClick={(centerName) => {
-              const center = acopios.find(a => a.name === centerName);
+            locations={acopios}
+            onCenterClick={(centerId) => {
+              const center = acopios.find(a => a.id === centerId);
               if (center) {
                 setViewMode('mapa');
                 setFlyTarget({ lat: center.lat, lng: center.lng, zoom: 17 });
@@ -905,8 +906,29 @@ function App() {
       <ReportEditor 
         isOpen={showReportModal} 
         onClose={() => setShowReportModal(false)} 
-        onSubmit={(content, isCritical) => {
-          console.log('New Report:', { content, isCritical });
+        contextLocation={selectedLoc ? selectedLoc.name : undefined}
+        onSubmit={async (content, isCritical, linkedCenterName) => {
+          // Resolve linked center ID from name if provided
+          let linked_center_id = undefined;
+          if (linkedCenterName) {
+            const found = acopios.find(a => a.name === linkedCenterName);
+            if (found) linked_center_id = found.id;
+          }
+          
+          const post = {
+            author_name: 'Voluntario',
+            content,
+            is_critical: isCritical,
+            linked_center_id,
+            lat: userPos?.lat || 10.4806,
+            lng: userPos?.lng || -66.9036,
+            zone: await reverseGeocode(userPos?.lat || 10.4806, userPos?.lng || -66.9036)
+          };
+          
+          await publishTacticalReport(post);
+          // In a real app we would mutate the TacticalFeed state here, but since it's unmounted when on map,
+          // when we switch back to reportes, it will re-fetch.
+          showToast('Reporte publicado', 'Tu alerta ya está en el Tactical Feed.', 'report_toast');
         }}
       />
 

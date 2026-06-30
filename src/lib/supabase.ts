@@ -40,6 +40,57 @@ export interface Validation {
   created_at: string;
 };
 
+export interface TacticalPost {
+  id: string;
+  user_id?: string;
+  author_name: string;
+  author_avatar?: string;
+  content: string;
+  is_critical: boolean;
+  linked_center_id?: string;
+  lat: number;
+  lng: number;
+  zone: string;
+  created_at: string;
+  supports_count: number;
+}
+
+export const DEMO_POSTS: TacticalPost[] = [
+  {
+    id: '1',
+    author_name: 'Carlos M.',
+    author_avatar: 'https://i.pravatar.cc/150?u=carlos',
+    content: 'Necesitamos 5 médicos voluntarios urgentemente. Hay muchos heridos llegando de la autopista y los insumos se están acabando.',
+    is_critical: true,
+    linked_center_id: 'c2', // Hospital CHET
+    lat: 10.1910, lng: -67.9931, zone: 'Valencia, Carabobo',
+    created_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    supports_count: 142
+  },
+  {
+    id: '2',
+    author_name: 'Ana R.',
+    author_avatar: 'https://i.pravatar.cc/150?u=ana',
+    content: 'La vía principal hacia el centro de acopio está bloqueada por escombros. Por favor, usen la ruta alterna por la avenida Bolívar.',
+    is_critical: false,
+    linked_center_id: 'c1', // Iglesia San José
+    lat: 10.2310, lng: -66.8631, zone: 'Chacao, Miranda',
+    created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    supports_count: 85
+  },
+  {
+    id: '3',
+    author_name: 'Miguel T.',
+    author_avatar: 'https://i.pravatar.cc/150?u=miguel',
+    content: 'Acaban de llegar 20 cajas de agua potable, pero necesitamos transporte para distribuirlas hacia el sur.',
+    is_critical: false,
+    lat: 10.4806, lng: -66.9036, zone: 'Caracas, Distrito Capital',
+    created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    supports_count: 34
+  }
+];
+
+
 // Haversine ΓÇö distancia en km
 export function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
@@ -169,4 +220,34 @@ export async function searchLocation(query: string): Promise<Array<{lat: number,
   }
 
   return combined.slice(0, 10);
+}
+
+export async function getTacticalFeed(lat: number, lng: number, radiusKm: number = 50): Promise<TacticalPost[]> {
+  if (isDemoMode || !supabase) return DEMO_POSTS;
+  
+  const { data, error } = await supabase.rpc('get_tactical_feed_radar', {
+    user_lat: lat,
+    user_lng: lng,
+    radius_km: radiusKm
+  });
+
+  if (error) {
+    console.error('Error fetching tactical feed:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function publishTacticalReport(post: Omit<TacticalPost, 'id' | 'created_at' | 'supports_count'>): Promise<boolean> {
+  if (isDemoMode || !supabase) {
+    console.log('Demo publish:', post);
+    return true;
+  }
+  
+  const { error } = await supabase.from('tactical_feed').insert([post]);
+  if (error) {
+    console.error('Error publishing report:', error);
+    return false;
+  }
+  return true;
 }

@@ -1057,64 +1057,65 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 
 .tactical-feed-view {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: #1C1C1E; color: #F2F2F7;
+  background: var(--gray-50); color: var(--gray-900);
   z-index: 900;
   padding-top: 60px; /* offset para el top bar */
 }
 
-/* ========== TACTICAL FEED CSS (ELEGANT & NATIVE) ========== */
+/* ========== TACTICAL FEED CSS (LIGHT / SEAMLESS) ========== */
 .tactical-feed-container {
   height: 100%;
   overflow-y: auto;
   padding: 0 16px 120px 16px;
   font-family: var(--font);
   max-width: 600px;
-  margin: 0 auto; /* Centered on desktop */
+  margin: 0 auto;
 }
 
 .feed-list { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
 
 .feed-card {
-  background: #2C2C2E; border-radius: 20px;
+  background: var(--white); border-radius: 20px;
   padding: 16px; display: flex; flex-direction: column; gap: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--gray-200);
 }
 
 .feed-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
 
 .feed-author-block { display: flex; gap: 10px; align-items: center; }
-.feed-avatar { width: 36px; height: 36px; border-radius: 18px; object-fit: cover; background: #3A3A3C; }
+.feed-avatar { width: 36px; height: 36px; border-radius: 18px; object-fit: cover; background: var(--gray-200); }
 .feed-author-meta { display: flex; flex-direction: column; gap: 2px; }
-.feed-author-name { font-size: 15px; font-weight: 600; color: #FFFFFF; display: flex; align-items: center; gap: 6px; }
-.feed-time-zone { font-size: 13px; color: #8E8E93; display: flex; align-items: center; gap: 4px; }
+.feed-author-name { font-size: 15px; font-weight: 600; color: var(--gray-900); display: flex; align-items: center; gap: 6px; }
+.feed-time-zone { font-size: 13px; color: var(--gray-500); display: flex; align-items: center; gap: 4px; }
 
-.feed-critical-dot { width: 8px; height: 8px; border-radius: 50%; background: #FF453A; display: inline-block; box-shadow: 0 0 8px rgba(255, 69, 58, 0.5); }
+.feed-critical-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); display: inline-block; box-shadow: 0 0 8px rgba(220, 38, 38, 0.5); }
 
-.feed-options-btn { background: transparent; border: none; color: #8E8E93; cursor: pointer; padding: 4px; }
+.feed-options-btn { background: transparent; border: none; color: var(--gray-500); cursor: pointer; padding: 4px; }
 
-.feed-content { font-size: 16px; line-height: 1.4; color: #F2F2F7; margin: 4px 0; font-weight: 400; }
+.feed-content { font-size: 16px; line-height: 1.4; color: var(--gray-900); margin: 4px 0; font-weight: 400; }
 
 .feed-linked-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  background: rgba(10, 132, 255, 0.15); color: #409CFF;
+  background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe;
   padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500;
   align-self: flex-start; margin-top: -4px;
 }
 
 .feed-card-actions {
   display: flex; gap: 12px; margin-top: 4px;
-  border-top: 1px solid #3A3A3C; padding-top: 12px;
+  border-top: 1px solid var(--gray-200); padding-top: 12px;
 }
 .action-btn-subtle {
   display: flex; align-items: center; gap: 6px;
-  background: transparent; border: none; color: #8E8E93;
+  background: transparent; border: none; color: var(--gray-500);
   font-size: 14px; font-weight: 500; cursor: pointer; transition: color 0.2s;
 }
-.action-btn-subtle:hover, .action-btn-subtle:active { color: #34C759; }
+.action-btn-subtle:hover, .action-btn-subtle:active { color: var(--green); }
 
 /* ========== REPORT EDITOR (TWITTER STYLE) ========== */
 .report-editor-sheet {
-  background: #1C1C1E; color: #F2F2F7;
+  background: var(--white); color: var(--gray-900);
   border-top-left-radius: 24px; border-top-right-radius: 24px;
 }
 .report-editor-container {
@@ -1122,44 +1123,44 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   font-family: var(--font);
 }
 .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.editor-title { font-size: 16px; font-weight: 700; color: #fff; }
+.editor-title { font-size: 16px; font-weight: 700; color: var(--gray-900); }
 .editor-submit-btn-small {
-  background: #0A84FF; color: white;
+  background: var(--blue); color: white;
   border: none; border-radius: 20px; padding: 6px 16px;
   font-size: 14px; font-weight: 700; cursor: pointer;
 }
-.editor-submit-btn-small:disabled { background: #3A3A3C; color: #8E8E93; cursor: not-allowed; }
+.editor-submit-btn-small:disabled { background: var(--gray-200); color: var(--gray-500); cursor: not-allowed; }
 
 .editor-body { display: flex; gap: 12px; align-items: flex-start; }
-.editor-avatar { width: 40px; height: 40px; border-radius: 20px; background: #3A3A3C; object-fit: cover; }
+.editor-avatar { width: 40px; height: 40px; border-radius: 20px; background: var(--gray-200); object-fit: cover; }
 
 .editor-input-area { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .editor-textarea {
-  background: transparent; color: #fff;
+  background: transparent; color: var(--gray-900);
   border: none; padding: 4px 0; min-height: 100px; 
   font-size: 18px; line-height: 1.4; resize: none; width: 100%; outline: none;
 }
-.editor-textarea::placeholder { color: #8E8E93; }
+.editor-textarea::placeholder { color: var(--gray-500); }
 
 .editor-context-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(10, 132, 255, 0.15); color: #409CFF;
+  background: #eff6ff; color: var(--blue);
   padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 500;
   cursor: pointer; align-self: flex-start;
 }
 
 .editor-toolbar {
   display: flex; justify-content: space-between; align-items: center;
-  border-top: 1px solid #3A3A3C; padding-top: 12px; margin-top: 8px;
+  border-top: 1px solid var(--gray-200); padding-top: 12px; margin-top: 8px;
 }
 .editor-tools-left { display: flex; gap: 12px; }
 .editor-tool-btn {
-  background: transparent; border: none; color: #0A84FF;
+  background: transparent; border: none; color: var(--blue);
   display: flex; align-items: center; justify-content: center;
   padding: 8px; border-radius: 50%; cursor: pointer; transition: background 0.2s;
 }
-.editor-tool-btn:hover { background: rgba(10, 132, 255, 0.1); }
-.editor-tool-btn.critical { color: #8E8E93; }
-.editor-tool-btn.critical.active { color: #FF453A; background: rgba(255, 69, 58, 0.1); }
+.editor-tool-btn:hover { background: #eff6ff; }
+.editor-tool-btn.critical { color: var(--gray-500); }
+.editor-tool-btn.critical.active { color: var(--red); background: #fee2e2; }
 
-.editor-char-count { font-size: 13px; color: #8E8E93; }
+.editor-char-count { font-size: 13px; color: var(--gray-500); }
