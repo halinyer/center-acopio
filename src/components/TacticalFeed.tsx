@@ -184,11 +184,12 @@ export const TacticalFeed = ({
                   <img src={post.author_avatar || 'https://i.pravatar.cc/150?u=anon'} alt="avatar" className="feed-avatar" />
                   <div className="feed-author-meta">
                     <div className="feed-author-name">
-                      {post.author_name} 
+                      {post.author_name}
                       {post.is_critical && <span className="feed-critical-dot" title="Alerta Crítica" />}
                     </div>
+                    <span style={{ color: '#536471' }}>&middot;</span>
                     <div className="feed-time-zone">
-                      <Clock size={12} /> {timeAgo(post.created_at)} &middot; {post.zone}
+                      {timeAgo(post.created_at)} {post.zone ? `· ${post.zone}` : ''}
                     </div>
                   </div>
                 </div>
