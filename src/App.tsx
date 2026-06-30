@@ -779,6 +779,7 @@ function App() {
                 <Bell size={18} />
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
+              {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
             <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
             <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
           </div>
@@ -820,11 +821,12 @@ function App() {
       <SwipeableSheet isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} className="auth-card">
             <div className="list-handle" />
             <h2 style={{display:'flex', alignItems:'center', gap:'8px', margin: '0 0 12px 0'}}><Lock size={20} /> Registrar un Centro</h2>
-            <p style={{marginBottom: '20px', fontSize: '14px', color: 'var(--gray-600)', lineHeight: '1.5'}}>
-              Para evitar centros fantasmas, necesitamos verificar tu identidad.
-              <br/><br/>
-              Si tienes un <strong>Código de Acceso</strong>, ingrésalo abajo. Si no lo tienes, búscanos en X/Twitter como @AcopioVen para habilitarte.
-            </p>
+            <div style={{ background: 'rgba(37,211,102,0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--gray-800)', lineHeight: '1.5' }}>
+                Para evitar centros fantasmas, verificamos la identidad de los encargados. Si deseas registrar tu centro y no tienes código, escríbenos al WhatsApp: 
+                <br/><a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none', display: 'inline-block', marginTop: '4px' }}>+58 424-1930273</a>
+              </p>
+            </div>
             <form onSubmit={handleAuthSubmit}>
               <input 
                 type="password" 
