@@ -779,7 +779,6 @@ function App() {
                 <Bell size={18} />
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
-              {!isUnlocked && <button className="btn-circle" onClick={() => setShowAuthModal(true)} title="Acceso Líderes"><Lock size={18} /></button>}
             <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
             <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
           </div>
@@ -789,12 +788,10 @@ function App() {
       {/* BOTTOM NAVIGATION BAR (Option A) */}
       {!placingMode && !showList && (
         <div className="bottom-nav-bar">
-          {isUnlocked && (
-            <button className="nav-btn" onClick={startPlacing}>
-              <Plus size={20} />
-              <span>Registrar</span>
-            </button>
-          )}
+          <button className="nav-btn" onClick={isUnlocked ? startPlacing : () => setShowAuthModal(true)}>
+            <Plus size={20} />
+            <span>Registrar</span>
+          </button>
           <button className="nav-btn primary" onClick={() => setShowRadarModal(true)}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✋</div>
             <span>Quiero Ayudar</span>
@@ -822,14 +819,18 @@ function App() {
       {/* AUTH MODAL */}
       <SwipeableSheet isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} className="auth-card">
             <div className="list-handle" />
-            <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><Lock size={20} /> Acceso a Líderes</h2>
-            <p>Ingresa el código de acceso para poder registrar centros de acopio.</p>
+            <h2 style={{display:'flex', alignItems:'center', gap:'8px', margin: '0 0 12px 0'}}><Lock size={20} /> Registrar un Centro</h2>
+            <p style={{marginBottom: '20px', fontSize: '14px', color: 'var(--gray-600)', lineHeight: '1.5'}}>
+              Para evitar centros fantasmas, necesitamos verificar tu identidad.
+              <br/><br/>
+              Si tienes un <strong>Código de Acceso</strong>, ingrésalo abajo. Si no lo tienes, búscanos en X/Twitter como @AcopioVen para habilitarte.
+            </p>
             <form onSubmit={handleAuthSubmit}>
               <input 
                 type="password" 
                 value={authCode} 
                 onChange={(e) => setAuthCode(e.target.value)} 
-                placeholder="Código de acceso..." 
+                placeholder="Ingresa tu código..." 
                 autoFocus 
               />
               <div className="auth-actions">
