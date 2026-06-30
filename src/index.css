@@ -41,10 +41,13 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   pointer-events: none;
 }
 .top-bar > * { pointer-events: all; }
-.top-bar-solid {
-  background: var(--bg-primary, var(--white));
+.top-bar-glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   pointer-events: all !important;
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 .brand { justify-self: start; }
 .top-actions { justify-self: end; }

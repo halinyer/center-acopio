@@ -47,13 +47,12 @@ export const TacticalFeed = ({
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
-    if (currentScrollY > lastScrollY.current + 10 && currentScrollY > 50) {
+    if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
       onScrollDir?.('down');
-      lastScrollY.current = currentScrollY;
-    } else if (currentScrollY < lastScrollY.current - 10) {
+    } else if (currentScrollY < lastScrollY.current) {
       onScrollDir?.('up');
-      lastScrollY.current = currentScrollY;
     }
+    lastScrollY.current = currentScrollY;
   };
 
   const lastPostElementRef = useCallback((node: HTMLDivElement) => {
@@ -118,7 +117,7 @@ export const TacticalFeed = ({
     const center = locations?.find(l => l.id === post.linked_center_id);
     if (center && center.leader_phone) {
       const msg = `Hola, vi en AcopioVen que necesitan apoyo en ${center.name}. ¡Quiero ayudar!`;
-      window.open(formatWaLink(center.leader_phone, msg), '_blank');
+      window.location.href = formatWaLink(center.leader_phone, msg);
     } else {
       alert('Este centro no tiene un número de contacto registrado.');
     }
@@ -127,7 +126,7 @@ export const TacticalFeed = ({
   const handleContactAuthor = (post: TacticalPost) => {
     if (post.contact_phone) {
       const msg = `Hola, vi tu reporte urgente en AcopioVen sobre la zona de ${post.zone}. ¿Cómo te puedo ayudar?`;
-      window.open(formatWaLink(post.contact_phone, msg), '_blank');
+      window.location.href = formatWaLink(post.contact_phone, msg);
     }
   };
 
