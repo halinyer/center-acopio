@@ -123,14 +123,25 @@ function App() {
   useEffect(() => {
     if (isDemoMode || !supabase) return;
     
+    const handleIntent = () => {
+      const intent = localStorage.getItem('tactical_login_intent');
+      if (intent === 'report') {
+        setShowReportModal(true);
+        setViewMode('reportes');
+        localStorage.removeItem('tactical_login_intent');
+      }
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthUser(session?.user || null);
+      if (session?.user) handleIntent();
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthUser(session?.user || null);
       if (session?.user) {
         setShowLoginSheet(false);
+        handleIntent();
       }
     });
 
@@ -724,7 +735,10 @@ function App() {
       icon: <Megaphone size={20} />,
       label: 'Reportar',
       onClick: () => {
-        if (!authUser) setShowLoginSheet(true);
+        if (!authUser) {
+          localStorage.setItem('tactical_login_intent', 'report');
+          setShowLoginSheet(true);
+        }
         else setShowReportModal(true);
       },
       isPrimary: true
