@@ -745,6 +745,8 @@ function App() {
     }
   ];
 
+  const [navHidden, setNavHidden] = useState(false);
+
   const mapActions = [
     {
       icon: <Plus size={20} />,
@@ -851,7 +853,7 @@ function App() {
       </div>
 
       {!placingMode && (
-        <div className="top-bar">
+        <div className={`top-bar ${viewMode === 'reportes' ? 'top-bar-solid' : ''}`}>
           <div className="brand">
             <div className="brand-icon"><Package size={24} color="white" /></div>
             {/* Ocultamos el texto en pantallas muy pequeñas para dar espacio al switch */}
@@ -861,15 +863,15 @@ function App() {
           <div className="view-switch">
             <button 
               className={`switch-btn ${viewMode === 'mapa' ? 'active' : ''}`}
-              onClick={() => setViewMode('mapa')}
+              onClick={() => { setViewMode('mapa'); setNavHidden(false); }}
             >
               Mapa
             </button>
             <button 
               className={`switch-btn ${viewMode === 'reportes' ? 'active' : ''}`}
-              onClick={() => setViewMode('reportes')}
+              onClick={() => { setViewMode('reportes'); setNavHidden(false); }}
             >
-              Reportes
+              Noticias
             </button>
           </div>
 
@@ -914,14 +916,19 @@ function App() {
                 setViewMode('mapa');
                 setFlyTarget({ lat: center.lat, lng: center.lng, zoom: 17 });
                 setSelectedLoc(center);
+                setNavHidden(false);
               } else {
                 setViewMode('mapa');
                 setFlyTarget({ lat: 10.2310, lng: -66.8631, zoom: 17 });
+                setNavHidden(false);
               }
             }}
+            onScrollDir={(dir) => setNavHidden(dir === 'down')}
           />
           {!placingMode && !showList && viewMode === 'reportes' && (
-            <DynamicBottomNav actions={reportesActions} />
+            <div style={{ transform: navHidden ? 'translateY(150%)' : 'translateY(0)', transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'absolute', bottom: '24px', left: 0, right: 0, zIndex: 1000 }}>
+              <DynamicBottomNav actions={reportesActions} />
+            </div>
           )}
         </div>
       </div>

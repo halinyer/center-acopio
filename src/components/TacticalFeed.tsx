@@ -13,19 +13,23 @@ function timeAgo(dateString: string): string {
   return `Hace ${Math.floor(hrs / 24)}d`;
 }
 
+type TacticalFeedProps = {
+  filter: 'todo' | 'alertas';
+  onCenterClick?: (c: string) => void;
+  locations?: LocationRow[];
+  authUser?: any;
+  onRequestLogin?: () => void;
+  onScrollDir?: (dir: 'up' | 'down') => void;
+};
+
 export const TacticalFeed = ({ 
   filter, 
   onCenterClick, 
   locations,
   authUser,
-  onRequestLogin
-}: { 
-  filter: 'todo' | 'alertas', 
-  onCenterClick?: (c: string) => void, 
-  locations?: LocationRow[],
-  authUser?: any,
-  onRequestLogin?: () => void
-}) => {
+  onRequestLogin,
+  onScrollDir
+}: TacticalFeedProps) => {
   const [posts, setPosts] = useState<TacticalPost[]>([]);
   const [newPostsQueue, setNewPostsQueue] = useState<TacticalPost[]>([]);
   
@@ -39,6 +43,19 @@ export const TacticalFeed = ({
 
   // Infinite Scroll Observer
   const observer = useRef<IntersectionObserver | null>(null);
+  const lastScrollY = useRef(0);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const currentScrollY = e.currentTarget.scrollTop;
+    if (currentScrollY > lastScrollY.current + 10 && currentScrollY > 50) {
+      onScrollDir?.('down');
+      lastScrollY.current = currentScrollY;
+    } else if (currentScrollY < lastScrollY.current - 10) {
+      onScrollDir?.('up');
+      lastScrollY.current = currentScrollY;
+    }
+  };
+
   const lastPostElementRef = useCallback((node: HTMLDivElement) => {
     if (loading || loadingMore || !hasMore) return;
     if (observer.current) observer.current.disconnect();
@@ -125,7 +142,7 @@ export const TacticalFeed = ({
   }
 
   return (
-    <div className="tactical-feed-container" style={{ position: 'relative' }}>
+    <div className="tactical-feed-container" onScroll={handleScroll} style={{ position: 'relative' }}>
       
       {/* Píldora de Realtime (Protocolo Burbuja) */}
       {newPostsQueue.length > 0 && (
