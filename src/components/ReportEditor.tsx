@@ -50,70 +50,75 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
           </button>
         </div>
         
-        <div className="editor-body">
-          <img src="https://i.pravatar.cc/150?u=current" alt="Avatar" className="editor-avatar" />
-          
-          <div className="editor-input-area">
-            <textarea 
-              className="editor-textarea"
-              placeholder="Reporta el estado de las vías, novedades de tu zona o necesidades urgentes..."
-              value={content}
-              onChange={(e) => setContent(e.target.value.slice(0, 280))}
-              autoFocus={false}
-            />
+        <div className="editor-body" style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', gap: '12px', width: '100%', opacity: showCenterSearch ? 0 : 1, pointerEvents: showCenterSearch ? 'none' : 'auto' }}>
+            <img src="https://i.pravatar.cc/150?u=current" alt="Avatar" className="editor-avatar" />
             
-            {isCritical && (
-              <div style={{ marginTop: '8px', padding: '8px', background: '#fee2e2', borderRadius: '12px', border: '1px solid #fecaca' }}>
-                <input 
-                  type="tel"
-                  placeholder="📞 Teléfono de contacto (Opcional)"
-                  value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  style={{
-                    background: 'transparent', border: 'none', outline: 'none', 
-                    width: '100%', fontSize: '14px', color: 'var(--red)', fontWeight: '500'
-                  }}
-                />
-              </div>
-            )}
-
-            {linkedCenter ? (
-              <div className="editor-context-chip" onClick={() => setLinkedCenter(undefined)} style={{ marginTop: '4px' }}>
-                <MapPin size={14} /> {linkedCenter} ✕
-              </div>
-            ) : (
-              <div className="editor-context-chip" style={{background: 'transparent', color: '#8E8E93', padding: '0', pointerEvents: 'none'}}>
-                📍 Charallave, Miranda (Solo ciudad)
-              </div>
-            )}
-            
-            {showCenterSearch && !linkedCenter && (
-              <div style={{ marginTop: '12px', border: '1px solid var(--gray-200)', borderRadius: '12px', overflow: 'hidden' }}>
-                <input 
-                  type="text" 
-                  placeholder="Buscar centro por nombre..." 
-                  value={centerSearchQuery}
-                  onChange={(e) => setCenterSearchQuery(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', border: 'none', borderBottom: '1px solid var(--gray-200)', outline: 'none', fontSize: '14px' }}
-                  autoFocus
-                />
-                <div style={{ maxHeight: '120px', overflowY: 'auto', background: 'var(--gray-50)' }}>
-                  {filteredCenters.map(center => (
-                    <div 
-                      key={center.id}
-                      onClick={() => { setLinkedCenter(center.name); setShowCenterSearch(false); setCenterSearchQuery(''); }}
-                      style={{ padding: '10px 14px', fontSize: '13px', cursor: 'pointer', borderBottom: '1px solid var(--gray-200)' }}
-                    >
-                      <strong>{center.name}</strong>
-                    </div>
-                  ))}
-                  {filteredCenters.length === 0 && (
-                    <div style={{ padding: '10px 14px', fontSize: '13px', color: 'var(--gray-500)' }}>No se encontraron centros</div>
-                  )}
+            <div className="editor-input-area">
+              <textarea 
+                className="editor-textarea"
+                placeholder="Reporta el estado de las vías, novedades de tu zona o necesidades urgentes..."
+                value={content}
+                onChange={(e) => setContent(e.target.value.slice(0, 280))}
+                autoFocus={false}
+              />
+              
+              {isCritical && (
+                <div style={{ marginTop: '8px', padding: '8px', background: '#fee2e2', borderRadius: '12px', border: '1px solid #fecaca' }}>
+                  <input 
+                    type="tel"
+                    placeholder="📞 Teléfono de contacto (Opcional)"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    style={{
+                      background: 'transparent', border: 'none', outline: 'none', 
+                      width: '100%', fontSize: '14px', color: 'var(--red)', fontWeight: '500'
+                    }}
+                  />
                 </div>
-              </div>
-            )}
+              )}
+
+              {linkedCenter ? (
+                <div className="editor-context-chip" onClick={() => setLinkedCenter(undefined)} style={{ marginTop: '4px' }}>
+                  <MapPin size={14} /> {linkedCenter} ✕
+                </div>
+              ) : (
+                <div className="editor-context-chip" style={{background: 'transparent', color: '#8E8E93', padding: '0', pointerEvents: 'none'}}>
+                  📍 Charallave, Miranda (Solo ciudad)
+                </div>
+              )}
+            </div>
           </div>
+          
+          {showCenterSearch && !linkedCenter && (
+            <div style={{ 
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
+              background: 'var(--white)', zIndex: 10, display: 'flex', flexDirection: 'column'
+            }}>
+              <input 
+                type="text" 
+                placeholder="Buscar centro por nombre..." 
+                value={centerSearchQuery}
+                onChange={(e) => setCenterSearchQuery(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', border: 'none', borderBottom: '1px solid var(--gray-200)', outline: 'none', fontSize: '15px', fontWeight: '500' }}
+                autoFocus
+              />
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {filteredCenters.map(center => (
+                  <div 
+                    key={center.id}
+                    onClick={() => { setLinkedCenter(center.name); setShowCenterSearch(false); setCenterSearchQuery(''); }}
+                    style={{ padding: '12px', fontSize: '14px', cursor: 'pointer', borderBottom: '1px solid var(--gray-100)' }}
+                  >
+                    <strong>{center.name}</strong>
+                  </div>
+                ))}
+                {filteredCenters.length === 0 && centerSearchQuery && (
+                  <div style={{ padding: '12px', fontSize: '14px', color: 'var(--gray-500)' }}>No se encontraron centros</div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="editor-toolbar">
