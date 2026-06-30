@@ -123,7 +123,7 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
                 className="editor-textarea"
                 placeholder="Reporta el estado de las vías, novedades de tu zona o necesidades urgentes..."
                 value={content}
-                onChange={(e) => setContent(e.target.value.slice(0, 280))}
+                onChange={(e) => setContent(e.target.value.slice(0, 500))}
                 autoFocus={false}
               />
               
@@ -229,7 +229,7 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
               <AlertTriangle size={20} />
             </button>
           </div>
-          <div className="editor-char-count">{content.length}/280</div>
+          <div className="editor-char-count">{content.length}/500</div>
         </div>
 
       </div>
