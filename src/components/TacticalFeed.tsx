@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Clock, MapPin, Check, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
-import { getTacticalFeed, subscribeToTacticalFeed, supabase } from '../lib/supabase';
+import { getTacticalFeed, subscribeToTacticalFeed, supabase, getDistanceKm } from '../lib/supabase';
 import type { TacticalPost, LocationRow } from '../lib/supabase';
 
 function timeAgo(dateString: string): string {
@@ -32,7 +32,8 @@ export const TacticalFeed = ({
   onScrollDir
 }: TacticalFeedProps) => {
   const [posts, setPosts] = useState<TacticalPost[]>([]);
-  const [newPostsQueue, setNewPostsQueue] = useState<TacticalPost[]>([]);
+  const [newPostsCount, setNewPostsCount] = useState(0);
+  const [outbox, setOutbox] = useState<TacticalPost[]>([]);
   const [viewerPost, setViewerPost] = useState<TacticalPost | null>(null);
   
   const [loading, setLoading] = useState(true);
@@ -77,10 +78,55 @@ export const TacticalFeed = ({
       setLoading(false);
     });
 
+    const syncOutbox = async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+      const raw = localStorage.getItem('tactical_outbox');
+      if (!raw) return;
+      try {
+        const pending = JSON.parse(raw);
+        if (pending.length === 0) return;
+        let successCount = 0;
+        for (const p of pending) {
+          const { id, created_at, supports_count, relevance_score, distance_km, ...cleanPost } = p;
+          const { error } = await supabase.from('tactical_feed').insert([cleanPost]);
+          if (!error) successCount++;
+        }
+        if (successCount === pending.length) {
+          localStorage.removeItem('tactical_outbox');
+          setOutbox([]);
+          getTacticalFeed(lat, lng, undefined, undefined, undefined, 15).then(data => setPosts(data));
+        }
+      } catch (e) {}
+    };
+
+    const loadOutbox = () => {
+      const raw = localStorage.getItem('tactical_outbox');
+      if (raw) {
+        try { setOutbox(JSON.parse(raw)); } catch {}
+      }
+    };
+
+    loadOutbox();
+    window.addEventListener('online', syncOutbox);
+    window.addEventListener('tactical_outbox_updated', loadOutbox);
+
     const unsubscribe = subscribeToTacticalFeed((newPost) => {
-      setNewPostsQueue(prev => [newPost, ...prev]);
+      // 1. Anti-Eco: ignorar posts propios para no mostrar píldora fantasma
+      if (authUser && newPost.user_id === authUser.id) return;
+      
+      // 2. Sensor Quirúrgico: Calcular distancia (Haversine)
+      const dist = getDistanceKm(lat, lng, newPost.lat, newPost.lng);
+      
+      // 3. Actualizar Píldora SOLO si es local o crítico
+      if (dist <= 20 || newPost.is_critical) {
+        setNewPostsCount(prev => prev + 1);
+      }
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      window.removeEventListener('online', syncOutbox);
+      window.removeEventListener('tactical_outbox_updated', loadOutbox);
+    };
   }, [lat, lng]);
 
   // Load More Effect
@@ -147,16 +193,18 @@ export const TacticalFeed = ({
     <div className="tactical-feed-container" onScroll={handleScroll} style={{ position: 'relative' }}>
       
       {/* Píldora de Realtime (Protocolo Burbuja) */}
-      {newPostsQueue.length > 0 && (
+      {newPostsCount > 0 && (
         <div style={{ position: 'sticky', top: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <button 
             onClick={() => {
-              setPosts(prev => {
-                const merged = [...newPostsQueue, ...prev];
-                const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
-                return unique;
+              setPosts([]);
+              setLoading(true);
+              setHasMore(true);
+              setNewPostsCount(0);
+              getTacticalFeed(lat, lng, undefined, undefined, undefined, 15).then(data => {
+                setPosts(data);
+                setLoading(false);
               });
-              setNewPostsQueue([]);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             style={{
@@ -165,12 +213,38 @@ export const TacticalFeed = ({
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
             }}
           >
-            ↑ {newPostsQueue.length} Nuevo{newPostsQueue.length > 1 ? 's' : ''} Reporte{newPostsQueue.length > 1 ? 's' : ''}
+            ↑ {newPostsCount} Nuevo{newPostsCount > 1 ? 's' : ''} Reporte{newPostsCount > 1 ? 's' : ''}
           </button>
         </div>
       )}
 
       <div className="feed-list">
+        {outbox.map((post) => (
+          <div key={post.id} className="feed-card" style={{ opacity: 0.6 }}>
+            <div className="feed-card-top">
+              <div className="feed-author-block">
+                <img src={post.author_avatar || 'https://i.pravatar.cc/150?u=anon'} alt="avatar" className="feed-avatar" />
+                <div className="feed-author-meta">
+                  <div className="feed-author-name">
+                    {post.author_name}
+                    {post.is_critical && <span className="feed-critical-dot" title="Alerta Crítica" />}
+                  </div>
+                  <span style={{ color: '#536471' }}>&middot;</span>
+                  <div className="feed-time-zone">
+                    Enviando... {post.zone ? `· ${post.zone}` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p className="feed-content">{post.content}</p>
+            {post.image_url && (
+              <div className="feed-media-container">
+                <img src={post.image_url} alt="media" className="feed-media" />
+              </div>
+            )}
+          </div>
+        ))}
+
         {displayedPosts.map((post, index) => {
           const isLastPost = index === displayedPosts.length - 1;
           return (

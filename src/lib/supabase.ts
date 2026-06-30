@@ -289,16 +289,32 @@ export async function publishTacticalReport(post: Omit<TacticalPost, 'id' | 'cre
     return true;
   }
   
-  const { error } = await supabase.from('tactical_feed').insert([post]);
-  if (error) {
-    console.error('Error publishing report:', error);
-    // Buzón de Salida Offline (Pendiente de sincronizar)
+  const saveOffline = () => {
     const pending = JSON.parse(localStorage.getItem('tactical_outbox') || '[]');
     pending.push({ ...post, id: 'temp-' + Date.now(), created_at: new Date().toISOString() });
     localStorage.setItem('tactical_outbox', JSON.stringify(pending));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('tactical_outbox_updated'));
+    }
+  };
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    saveOffline();
     return false;
   }
-  return true;
+  
+  try {
+    const { error } = await supabase.from('tactical_feed').insert([post]);
+    if (error) {
+      console.error('Error publishing report:', error);
+      saveOffline();
+      return false;
+    }
+    return true;
+  } catch (err) {
+    saveOffline();
+    return false;
+  }
 }
 
 // ==========================================
