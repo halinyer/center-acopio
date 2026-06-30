@@ -745,8 +745,6 @@ function App() {
     }
   ];
 
-  const [navHidden, setNavHidden] = useState(false);
-
   const mapActions = [
     {
       icon: <Plus size={20} />,
@@ -863,13 +861,13 @@ function App() {
           <div className="view-switch">
             <button 
               className={`switch-btn ${viewMode === 'mapa' ? 'active' : ''}`}
-              onClick={() => { setViewMode('mapa'); setNavHidden(false); }}
+              onClick={() => setViewMode('mapa')}
             >
               Mapa
             </button>
             <button 
               className={`switch-btn ${viewMode === 'reportes' ? 'active' : ''}`}
-              onClick={() => { setViewMode('reportes'); setNavHidden(false); }}
+              onClick={() => setViewMode('reportes')}
             >
               Noticias
             </button>
@@ -916,27 +914,19 @@ function App() {
                 setViewMode('mapa');
                 setFlyTarget({ lat: center.lat, lng: center.lng, zoom: 17 });
                 setSelectedLoc(center);
-                setNavHidden(false);
               } else {
                 setViewMode('mapa');
                 setFlyTarget({ lat: 10.2310, lng: -66.8631, zoom: 17 });
-                setNavHidden(false);
               }
             }}
-            onScrollDir={(dir) => setNavHidden(dir === 'down')}
           />
-          {!placingMode && !showList && viewMode === 'reportes' && (
-            <div style={{ transform: navHidden ? 'translateY(150%)' : 'translateY(0)', transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'absolute', bottom: '24px', left: 0, right: 0, zIndex: 1000 }}>
-              <DynamicBottomNav actions={reportesActions} />
-            </div>
-          )}
         </div>
       </div>
 
-      {/* BOTTOM NAVIGATION BAR (Option A) */}
-      {viewMode === 'mapa' && !placingMode && !showList && (
-        <DynamicBottomNav actions={mapActions} />
+      {!placingMode && !showList && (
+        <DynamicBottomNav actions={viewMode === 'mapa' ? mapActions : reportesActions} />
       )}
+
 
       {viewMode === 'mapa' && nearest && !placingMode && !showList && !selectedLoc && (
         <div className="nearest-chip" onClick={() => openDetails(nearest.location)}>

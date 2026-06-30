@@ -32,6 +32,7 @@ export const TacticalFeed = ({
 }: TacticalFeedProps) => {
   const [posts, setPosts] = useState<TacticalPost[]>([]);
   const [newPostsQueue, setNewPostsQueue] = useState<TacticalPost[]>([]);
+  const [viewerPost, setViewerPost] = useState<TacticalPost | null>(null);
   
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -196,7 +197,10 @@ export const TacticalFeed = ({
               <p className="feed-content">{post.content}</p>
               
               {post.image_url && (
-                <div style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden' }}>
+                <div 
+                  style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer' }}
+                  onClick={() => setViewerPost(post)}
+                >
                   <img src={post.image_url} alt="Evidencia" style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', display: 'block' }} />
                 </div>
               )}
@@ -272,6 +276,67 @@ export const TacticalFeed = ({
           </div>
         )}
       </div>
+
+      {viewerPost && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', color: 'white', zIndex: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={viewerPost.author_avatar || 'https://i.pravatar.cc/150?u=anon'} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+              <div>
+                <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{viewerPost.author_name}</div>
+                <div style={{ fontSize: '12px', color: '#ccc' }}>{timeAgo(viewerPost.created_at)}</div>
+              </div>
+            </div>
+            <button onClick={() => setViewerPost(null)} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '24px', cursor: 'pointer', padding: '4px 12px' }}>✕</button>
+          </div>
+          
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: '-60px' }}>
+            <img src={viewerPost.image_url} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+          </div>
+
+          <div style={{ padding: '24px 16px 48px 16px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', zIndex: 2 }}>
+            <p style={{ color: 'white', fontSize: '15px', marginBottom: '16px', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{viewerPost.content}</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button 
+                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.15)', color: 'white', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                onClick={() => {
+                  if (!authUser) { onRequestLogin?.(); return; }
+                  const supported = JSON.parse(localStorage.getItem('tactical_supported') || '{}');
+                  if (supported[viewerPost.id]) return;
+                  setPosts(prev => prev.map(p => p.id === viewerPost.id ? { ...p, supports_count: p.supports_count + 1 } : p));
+                  supported[viewerPost.id] = true;
+                  localStorage.setItem('tactical_supported', JSON.stringify(supported));
+                  if (supabase) supabase.rpc('increment_support', { p_post_id: viewerPost.id }).catch(() => {});
+                  setViewerPost(prev => prev ? { ...prev, supports_count: prev.supports_count + 1 } : null);
+                }}
+              >
+                <Check size={18} /> {viewerPost.supports_count}
+              </button>
+              <button 
+                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.15)', color: 'white', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                onClick={() => handleShare(viewerPost)}
+              >
+                <Share size={18} />
+              </button>
+              {viewerPost.linked_center_id ? (
+                <button 
+                  style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: 'var(--blue)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                  onClick={() => handleHelpCenter(viewerPost)}
+                >
+                  <MessageCircle size={18} /> Ayudar
+                </button>
+              ) : viewerPost.contact_phone ? (
+                <button 
+                  style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#25D366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                  onClick={() => handleContactAuthor(viewerPost)}
+                >
+                  <MessageCircle size={18} /> WhatsApp
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
