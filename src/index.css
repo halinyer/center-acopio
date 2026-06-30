@@ -1079,6 +1079,9 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   padding: 16px; display: flex; flex-direction: column; gap: 12px;
   box-shadow: var(--shadow);
   border: 1px solid var(--gray-200);
+  /* Virtualización nativa para listas largas */
+  content-visibility: auto;
+  contain-intrinsic-size: 200px;
 }
 
 .feed-card-top { display: flex; justify-content: space-between; align-items: flex-start; }

@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Clock, MapPin, Check, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
-import { getTacticalFeed } from '../lib/supabase';
+import { getTacticalFeed, subscribeToTacticalFeed } from '../lib/supabase';
 import type { TacticalPost, LocationRow } from '../lib/supabase';
 
-// Helper para parsear la fecha a formato relativo ("Hace 5 min")
 function timeAgo(dateString: string): string {
   const diff = Date.now() - new Date(dateString).getTime();
   const mins = Math.floor(diff / 60000);
@@ -16,21 +15,59 @@ function timeAgo(dateString: string): string {
 
 export const TacticalFeed = ({ filter, onCenterClick, locations }: { filter: 'todo' | 'alertas', onCenterClick?: (c: string) => void, locations?: LocationRow[] }) => {
   const [posts, setPosts] = useState<TacticalPost[]>([]);
+  const [newPostsQueue, setNewPostsQueue] = useState<TacticalPost[]>([]);
+  
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
+  // Mock coordenadas locales (En prod: usar GPS real)
+  const lat = 10.4806;
+  const lng = -66.9036;
+
+  // Infinite Scroll Observer
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastPostElementRef = useCallback((node: HTMLDivElement) => {
+    if (loading || loadingMore || !hasMore) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        setLoadingMore(true);
+      }
+    }, { rootMargin: '400px' }); // Gatillar cuando falten 3-4 tarjetas
+    if (node) observer.current.observe(node);
+  }, [loading, loadingMore, hasMore]);
+
+  // Initial Fetch & Realtime Subscription
   useEffect(() => {
-    // TODO: En el futuro tomar lat/lng del GPS real si está disponible
-    // Simulamos que estamos en Caracas para el query
-    const lat = 10.4806;
-    const lng = -66.9036;
-
-    getTacticalFeed(lat, lng, 100).then(data => {
+    getTacticalFeed(lat, lng, undefined, undefined, undefined, 15).then(data => {
       setPosts(data);
+      setHasMore(data.length === 15);
       setLoading(false);
     });
-  }, []);
 
-  const displayedPosts = filter === 'alertas' ? posts.filter(p => p.is_critical) : posts;
+    const unsubscribe = subscribeToTacticalFeed((newPost) => {
+      setNewPostsQueue(prev => [newPost, ...prev]);
+    });
+    return () => unsubscribe();
+  }, [lat, lng]);
+
+  // Load More Effect
+  useEffect(() => {
+    if (loadingMore) {
+      const last = posts[posts.length - 1];
+      if (!last) return;
+      getTacticalFeed(lat, lng, last.relevance_score, last.created_at, last.id, 15).then(data => {
+        setPosts(prev => {
+          // Filtramos duplicados por seguridad en el edge case del realtime
+          const newIds = new Set(prev.map(p => p.id));
+          return [...prev, ...data.filter(d => !newIds.has(d.id))];
+        });
+        setHasMore(data.length === 15);
+        setLoadingMore(false);
+      });
+    }
+  }, [loadingMore, lat, lng]); // posts is read inside, but only triggers when loadingMore turns true
 
   const handleShare = (post: TacticalPost) => {
     const text = `🚨 Alerta en ${post.zone}:\n"${post.content}"\n⏱️ ${timeAgo(post.created_at)}\n🔗 Reportado vía AcopioVen`;
@@ -66,78 +103,124 @@ export const TacticalFeed = ({ filter, onCenterClick, locations }: { filter: 'to
   };
 
   if (loading) {
-    return <div className="tactical-feed-container" style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>Cargando reportes...</div>;
+    return <div className="tactical-feed-container" style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>Cargando radar logístico...</div>;
   }
 
-  if (displayedPosts.length === 0) {
+  const displayedPosts = filter === 'alertas' ? posts.filter(p => p.is_critical) : posts;
+
+  if (displayedPosts.length === 0 && newPostsQueue.length === 0) {
     return <div className="tactical-feed-container" style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>No hay reportes recientes en tu zona.</div>;
   }
 
   return (
-    <div className="tactical-feed-container">
+    <div className="tactical-feed-container" style={{ position: 'relative' }}>
+      
+      {/* Píldora de Realtime (Protocolo Burbuja) */}
+      {newPostsQueue.length > 0 && (
+        <div style={{ position: 'sticky', top: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <button 
+            onClick={() => {
+              setPosts(prev => {
+                const merged = [...newPostsQueue, ...prev];
+                const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
+                return unique;
+              });
+              setNewPostsQueue([]);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            style={{
+              background: 'var(--blue)', color: 'white', border: 'none', borderRadius: '24px', pointerEvents: 'auto',
+              padding: '8px 20px', fontSize: '14px', fontWeight: '600', boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+            }}
+          >
+            ↑ {newPostsQueue.length} Nuevo{newPostsQueue.length > 1 ? 's' : ''} Reporte{newPostsQueue.length > 1 ? 's' : ''}
+          </button>
+        </div>
+      )}
+
       <div className="feed-list">
-        {displayedPosts.map((post) => (
-          <div key={post.id} className="feed-card">
-            <div className="feed-card-top">
-              <div className="feed-author-block">
-                <img src={post.author_avatar || 'https://i.pravatar.cc/150?u=anon'} alt="avatar" className="feed-avatar" />
-                <div className="feed-author-meta">
-                  <div className="feed-author-name">
-                    {post.author_name} 
-                    {post.is_critical && <span className="feed-critical-dot" title="Alerta Crítica" />}
-                  </div>
-                  <div className="feed-time-zone">
-                    <Clock size={12} /> {timeAgo(post.created_at)} &middot; {post.zone}
+        {displayedPosts.map((post, index) => {
+          const isLastPost = index === displayedPosts.length - 1;
+          return (
+            <div 
+              key={post.id} 
+              className="feed-card"
+              ref={isLastPost ? lastPostElementRef : null}
+            >
+              <div className="feed-card-top">
+                <div className="feed-author-block">
+                  <img src={post.author_avatar || 'https://i.pravatar.cc/150?u=anon'} alt="avatar" className="feed-avatar" />
+                  <div className="feed-author-meta">
+                    <div className="feed-author-name">
+                      {post.author_name} 
+                      {post.is_critical && <span className="feed-critical-dot" title="Alerta Crítica" />}
+                    </div>
+                    <div className="feed-time-zone">
+                      <Clock size={12} /> {timeAgo(post.created_at)} &middot; {post.zone}
+                    </div>
                   </div>
                 </div>
+                <button className="feed-options-btn" title="Opciones"><MoreHorizontal size={18} /></button>
               </div>
-              <button className="feed-options-btn" title="Opciones (Reportar como falso)"><MoreHorizontal size={18} /></button>
-            </div>
-            
-            <p className="feed-content">{post.content}</p>
-            
-            {post.image_url && (
-              <div style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden' }}>
-                <img src={post.image_url} alt="Evidencia del reporte" style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', display: 'block' }} />
-              </div>
-            )}
-            
-            {post.linked_center_id && (
-              <div className="feed-linked-badge" onClick={() => onCenterClick?.(post.linked_center_id!)} style={{cursor: 'pointer'}}>
-                <MapPin size={12} /> {locations?.find(l => l.id === post.linked_center_id)?.name || `Vincular Centro (${post.linked_center_id.slice(0,4)})`}
-              </div>
-            )}
-            
-            <div className="feed-card-actions">
-              <button className="action-btn-subtle">
-                <Check size={16} /> Respaldar ({post.supports_count})
-              </button>
-              <button className="action-btn-subtle" onClick={() => handleShare(post)}>
-                <Share size={16} /> Compartir
-              </button>
+              
+              <p className="feed-content">{post.content}</p>
+              
+              {post.image_url && (
+                <div style={{ marginTop: '12px', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img src={post.image_url} alt="Evidencia" style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', display: 'block' }} />
+                </div>
+              )}
               
               {post.linked_center_id && (
-                <button 
-                  className="action-btn-subtle" 
-                  style={{ color: 'var(--blue)', fontWeight: '600', marginLeft: 'auto' }}
-                  onClick={() => handleHelpCenter(post)}
-                >
-                  <MessageCircle size={16} /> Ayudar al Centro
-                </button>
+                <div className="feed-linked-badge" onClick={() => onCenterClick?.(post.linked_center_id!)} style={{cursor: 'pointer'}}>
+                  <MapPin size={12} /> {locations?.find(l => l.id === post.linked_center_id)?.name || `Vincular Centro`}
+                </div>
               )}
               
-              {!post.linked_center_id && post.is_critical && post.contact_phone && (
-                <button 
-                  className="action-btn-subtle" 
-                  style={{ color: 'var(--red)', fontWeight: '600', marginLeft: 'auto' }}
-                  onClick={() => handleContactAuthor(post)}
-                >
-                  <MessageCircle size={16} /> Contactar al Autor
-                </button>
-              )}
+              <div className="feed-card-actions">
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <button className="action-btn-subtle">
+                    <Check size={16} /> Respaldar ({post.supports_count})
+                  </button>
+                  <button className="action-btn-subtle" onClick={() => handleShare(post)}>
+                    <Share size={16} /> Compartir
+                  </button>
+                </div>
+                
+                {post.linked_center_id ? (
+                  <button 
+                    className="action-btn-subtle" 
+                    style={{ color: 'var(--blue)', fontWeight: '600' }}
+                    onClick={() => handleHelpCenter(post)}
+                  >
+                    <MessageCircle size={16} /> Ayudar
+                  </button>
+                ) : post.is_critical && post.contact_phone ? (
+                  <button 
+                    className="action-btn-subtle" 
+                    style={{ color: 'var(--red)', fontWeight: '600' }}
+                    onClick={() => handleContactAuthor(post)}
+                  >
+                    <MessageCircle size={16} /> Contactar
+                  </button>
+                ) : null}
+              </div>
             </div>
+          );
+        })}
+        
+        {loadingMore && (
+          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--gray-500)', fontSize: '14px' }}>
+            Escaneando radar...
           </div>
-        ))}
+        )}
+        
+        {!hasMore && displayedPosts.length > 0 && (
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--gray-500)', fontSize: '14px', borderTop: '1px solid var(--gray-200)', marginTop: '1rem' }}>
+            No hay más reportes recientes (48h). Todo está en calma en el radar.
+          </div>
+        )}
       </div>
     </div>
   );

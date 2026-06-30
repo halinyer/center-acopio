@@ -9,6 +9,17 @@ export const supabase = isDemoMode
   ? null
   : createClient(supabaseUrl, supabaseAnonKey);
 
+// Device ID efímero para evitar el eco de nuestros propios posts en Realtime
+const LOCAL_DEVICE_ID_KEY = 'tactical_device_id';
+export const getDeviceId = () => {
+  let id = localStorage.getItem(LOCAL_DEVICE_ID_KEY);
+  if (!id) {
+    id = Math.random().toString(36).substring(2, 15);
+    localStorage.setItem(LOCAL_DEVICE_ID_KEY, id);
+  }
+  return id;
+};
+
 export interface LocationRow {
   id: string;
   name: string;
@@ -55,6 +66,9 @@ export interface TacticalPost {
   zone: string;
   created_at: string;
   supports_count: number;
+  relevance_score?: number;
+  distance_km?: number;
+  device_id?: string;
 }
 
 export const DEMO_POSTS: TacticalPost[] = [
@@ -226,13 +240,20 @@ export async function searchLocation(query: string): Promise<Array<{lat: number,
   return combined.slice(0, 10);
 }
 
-export async function getTacticalFeed(lat: number, lng: number, radiusKm: number = 50): Promise<TacticalPost[]> {
+export async function getTacticalFeed(
+  lat: number, lng: number, 
+  lastScore?: number, lastTime?: string, lastId?: string,
+  limit: number = 15
+): Promise<TacticalPost[]> {
   if (isDemoMode || !supabase) return DEMO_POSTS;
   
   const { data, error } = await supabase.rpc('get_tactical_feed_radar', {
     user_lat: lat,
     user_lng: lng,
-    radius_km: radiusKm
+    p_last_score: lastScore || null,
+    p_last_time: lastTime || null,
+    p_last_id: lastId || null,
+    limit_size: limit
   });
 
   if (error) {
@@ -242,15 +263,40 @@ export async function getTacticalFeed(lat: number, lng: number, radiusKm: number
   return data || [];
 }
 
+export function subscribeToTacticalFeed(
+  onNewPost: (post: TacticalPost) => void
+) {
+  if (isDemoMode || !supabase) return () => {};
+
+  const myDeviceId = getDeviceId();
+
+  const channel = supabase.channel('public:tactical_feed')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tactical_feed' }, payload => {
+      const newPost = payload.new as TacticalPost;
+      // Anti-echo: ignorar si el post fue creado por este dispositivo
+      if (newPost.device_id === myDeviceId) return;
+      onNewPost(newPost);
+    })
+    .subscribe();
+
+  return () => { supabase.removeChannel(channel); };
+}
+
 export async function publishTacticalReport(post: Omit<TacticalPost, 'id' | 'created_at' | 'supports_count'>): Promise<boolean> {
+  const postWithDevice = { ...post, device_id: getDeviceId() };
+  
   if (isDemoMode || !supabase) {
-    console.log('Demo publish:', post);
+    console.log('Demo publish:', postWithDevice);
     return true;
   }
   
-  const { error } = await supabase.from('tactical_feed').insert([post]);
+  const { error } = await supabase.from('tactical_feed').insert([postWithDevice]);
   if (error) {
     console.error('Error publishing report:', error);
+    // Buzón de Salida Offline (Pendiente de sincronizar)
+    const pending = JSON.parse(localStorage.getItem('tactical_outbox') || '[]');
+    pending.push({ ...postWithDevice, id: 'temp-' + Date.now(), created_at: new Date().toISOString() });
+    localStorage.setItem('tactical_outbox', JSON.stringify(pending));
     return false;
   }
   return true;

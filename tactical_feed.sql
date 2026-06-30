@@ -47,11 +47,14 @@ CREATE TRIGGER trigger_purge_tactical_reports
     AFTER INSERT ON public.tactical_feed
     EXECUTE FUNCTION purge_old_tactical_reports();
 
--- 3. Funciones Geográficas para el Radar (PostGIS no es estrictamente necesario si usamos Haversine en RPC)
+-- 3. Motor Híbrido 80/20 (Score de Relevancia + Cursor Compuesto)
 CREATE OR REPLACE FUNCTION get_tactical_feed_radar(
     user_lat double precision,
     user_lng double precision,
-    radius_km double precision DEFAULT 50.0
+    p_last_score integer DEFAULT NULL,
+    p_last_time timestamp with time zone DEFAULT NULL,
+    p_last_id uuid DEFAULT NULL,
+    limit_size integer DEFAULT 15
 )
 RETURNS TABLE (
     id UUID,
@@ -65,26 +68,44 @@ RETURNS TABLE (
     zone TEXT,
     created_at TIMESTAMP WITH TIME ZONE,
     supports_count INTEGER,
-    distance_km double precision
+    distance_km double precision,
+    relevance_score integer
 ) AS $$
 BEGIN
     RETURN QUERY
+    WITH scored_posts AS (
+        SELECT 
+            t.id, t.author_name, t.author_avatar, t.content, t.image_url, t.is_critical, t.contact_phone,
+            t.linked_center_id, t.zone, t.created_at, t.supports_count,
+            -- Fórmula Haversine para distancia en KM
+            (6371 * acos(
+                cos(radians(user_lat)) * cos(radians(t.lat)) *
+                cos(radians(t.lng) - radians(user_lng)) +
+                sin(radians(user_lat)) * sin(radians(t.lat))
+            )) AS dist_km
+        FROM public.tactical_feed t
+        -- Amnesia estricta a nivel de BBDD
+        WHERE t.created_at >= NOW() - INTERVAL '48 hours'
+    ),
+    final_posts AS (
+        SELECT 
+            sp.*,
+            CASE 
+                WHEN sp.is_critical = true AND sp.dist_km <= 20 THEN 4
+                WHEN sp.is_critical = false AND sp.dist_km <= 20 THEN 3
+                WHEN sp.is_critical = true AND sp.dist_km > 20 THEN 2
+                ELSE 1
+            END AS rel_score
+        FROM scored_posts sp
+    )
     SELECT 
-        t.id, t.author_name, t.author_avatar, t.content, t.image_url, t.is_critical, t.contact_phone,
-        t.linked_center_id, t.zone, t.created_at, t.supports_count,
-        -- Fórmula Haversine para distancia en KM
-        (6371 * acos(
-            cos(radians(user_lat)) * cos(radians(t.lat)) *
-            cos(radians(t.lng) - radians(user_lng)) +
-            sin(radians(user_lat)) * sin(radians(t.lat))
-        )) AS distance_km
-    FROM public.tactical_feed t
+        fp.id, fp.author_name, fp.author_avatar, fp.content, fp.image_url, fp.is_critical, fp.contact_phone,
+        fp.linked_center_id, fp.zone, fp.created_at, fp.supports_count, fp.dist_km, fp.rel_score
+    FROM final_posts fp
     WHERE 
-        (6371 * acos(
-            cos(radians(user_lat)) * cos(radians(t.lat)) *
-            cos(radians(t.lng) - radians(user_lng)) +
-            sin(radians(user_lat)) * sin(radians(t.lat))
-        )) <= radius_km
-    ORDER BY t.created_at DESC;
+        p_last_score IS NULL OR 
+        (fp.rel_score, fp.created_at, fp.id) < (p_last_score, p_last_time, p_last_id)
+    ORDER BY fp.rel_score DESC, fp.created_at DESC, fp.id DESC
+    LIMIT limit_size;
 END;
 $$ LANGUAGE plpgsql;
