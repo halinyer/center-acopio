@@ -89,14 +89,16 @@ function gmapsUrl(userLat: number | null, userLng: number | null, lat: number, l
 }
 
 // CORRECCIÓN: Fuerza a Leaflet a recalcular el tamaño correcto en móviles para evitar azulejos grises
-function MapResizer() {
+function MapResizer({ viewMode }: { viewMode: string }) {
   const map = useMap();
   useEffect(() => {
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [map]);
+    if (viewMode === 'mapa') {
+      const timer = setTimeout(() => {
+        map.invalidateSize();
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [map, viewMode]);
   return null;
 }
 
@@ -828,7 +830,7 @@ function App() {
           <MapCenterer flyTo={mapFlyTo} />
           {flyTarget && <FlyTo lat={flyTarget.lat} lng={flyTarget.lng} zoom={flyTarget.zoom} />}
           {placingMode && !showForm && <MapClickHandler onMapClick={handleMapClick} />}
-          <MapResizer />
+          <MapResizer viewMode={viewMode} />
 
           {userPos && (
             <Marker position={[userPos.lat, userPos.lng]} icon={userIcon()}>
@@ -983,9 +985,6 @@ function App() {
             };
           
           await publishTacticalReport(post);
-          // In a real app we would mutate the TacticalFeed state here, but since it's unmounted when on map,
-          // when we switch back to reportes, it will re-fetch.
-          showToast('Reporte publicado', 'Tu alerta ya está en el Tactical Feed.', 'report_toast');
         }}
       />
 
