@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 
 interface SwipeableSheetProps {
   isOpen: boolean;
@@ -8,7 +9,7 @@ interface SwipeableSheetProps {
 }
 
 export function SwipeableSheet({ isOpen, onClose, className = '', children }: SwipeableSheetProps) {
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div 
@@ -18,7 +19,7 @@ export function SwipeableSheet({ isOpen, onClose, className = '', children }: Sw
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          style={{ touchAction: 'none' }}
+          style={{ touchAction: 'none', zIndex: 99999 }}
         >
           <motion.div
             className={`modal-sheet ${className}`}
@@ -39,6 +40,7 @@ export function SwipeableSheet({ isOpen, onClose, className = '', children }: Sw
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

@@ -1540,16 +1540,19 @@ function App() {
 
       {/* LOGIN SHEET (TikTok Style Auth) */}
       <SwipeableSheet isOpen={showLoginSheet} onClose={() => setShowLoginSheet(false)} className="help-sheet">
-        <div className="modal-header">
-          <h3 className="modal-title">Iniciar Sesión</h3>
-          <button className="modal-close" onClick={() => setShowLoginSheet(false)}>✕</button>
-        </div>
-        <div className="modal-body" style={{ textAlign: 'center', paddingBottom: '32px' }}>
-          <div style={{ background: 'var(--blue-light)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--blue)' }}>
+        <div style={{ position: 'relative', padding: '32px 24px 40px', textAlign: 'center' }}>
+          <button 
+            onClick={() => setShowLoginSheet(false)}
+            style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--gray-100)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--gray-500)' }}
+          >
+            ✕
+          </button>
+          
+          <div style={{ background: 'var(--blue-light)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--blue)' }}>
             <Lock size={32} />
           </div>
-          <h4 style={{ margin: '0 0 8px', fontSize: '18px', color: 'var(--gray-900)' }}>Protegemos la Red</h4>
-          <p style={{ margin: '0 0 24px', fontSize: '14px', color: 'var(--gray-600)', lineHeight: '1.5' }}>
+          <h3 style={{ margin: '0 0 12px', fontSize: '24px', fontWeight: 'bold', color: 'var(--gray-900)' }}>Iniciar Sesión</h3>
+          <p style={{ margin: '0 0 32px', fontSize: '15px', color: 'var(--gray-600)', lineHeight: '1.5' }}>
             Para reportar o respaldar información, inicia sesión rápidamente. Esto nos ayuda a evitar spam y mantener las alertas seguras.
           </p>
           
