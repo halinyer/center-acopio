@@ -2,18 +2,24 @@ import { useState } from 'react';
 import { SwipeableSheet } from './SwipeableSheet';
 import { AlertTriangle, MapPin, Image as ImageIcon } from 'lucide-react';
 
+import type { LocationRow } from '../lib/supabase';
+
 type ReportEditorProps = {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (content: string, isCritical: boolean, linkedCenter?: string, contactPhone?: string) => void;
   contextLocation?: string; 
+  locations?: LocationRow[];
 };
 
-export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation }: ReportEditorProps) => {
+export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locations = [] }: ReportEditorProps) => {
   const [content, setContent] = useState('');
   const [isCritical, setIsCritical] = useState(false);
   const [contactPhone, setContactPhone] = useState('');
   const [linkedCenter, setLinkedCenter] = useState<string | undefined>(contextLocation);
+  
+  const [showCenterSearch, setShowCenterSearch] = useState(false);
+  const [centerSearchQuery, setCenterSearchQuery] = useState('');
 
   const handleSubmit = () => {
     if (!content.trim()) return;
@@ -21,8 +27,12 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation }: Rep
     setContent('');
     setIsCritical(false);
     setContactPhone('');
+    setShowCenterSearch(false);
+    setCenterSearchQuery('');
     onClose();
   };
+
+  const filteredCenters = locations.filter(l => l.name.toLowerCase().includes(centerSearchQuery.toLowerCase())).slice(0, 5);
 
   return (
     <SwipeableSheet isOpen={isOpen} onClose={onClose} className="report-editor-sheet">
@@ -72,8 +82,35 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation }: Rep
                 <MapPin size={14} /> {linkedCenter} ✕
               </div>
             ) : (
-              <div className="editor-context-chip" style={{background: 'transparent', color: '#8E8E93', padding: '0'}}>
+              <div className="editor-context-chip" style={{background: 'transparent', color: '#8E8E93', padding: '0', pointerEvents: 'none'}}>
                 📍 Charallave, Miranda (Solo ciudad)
+              </div>
+            )}
+            
+            {showCenterSearch && !linkedCenter && (
+              <div style={{ marginTop: '12px', border: '1px solid var(--gray-200)', borderRadius: '12px', overflow: 'hidden' }}>
+                <input 
+                  type="text" 
+                  placeholder="Buscar centro por nombre..." 
+                  value={centerSearchQuery}
+                  onChange={(e) => setCenterSearchQuery(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', border: 'none', borderBottom: '1px solid var(--gray-200)', outline: 'none', fontSize: '14px' }}
+                  autoFocus
+                />
+                <div style={{ maxHeight: '120px', overflowY: 'auto', background: 'var(--gray-50)' }}>
+                  {filteredCenters.map(center => (
+                    <div 
+                      key={center.id}
+                      onClick={() => { setLinkedCenter(center.name); setShowCenterSearch(false); setCenterSearchQuery(''); }}
+                      style={{ padding: '10px 14px', fontSize: '13px', cursor: 'pointer', borderBottom: '1px solid var(--gray-200)' }}
+                    >
+                      <strong>{center.name}</strong>
+                    </div>
+                  ))}
+                  {filteredCenters.length === 0 && (
+                    <div style={{ padding: '10px 14px', fontSize: '13px', color: 'var(--gray-500)' }}>No se encontraron centros</div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -81,7 +118,18 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation }: Rep
 
         <div className="editor-toolbar">
           <div className="editor-tools-left">
-            <button className="editor-tool-btn" title="Vincular Centro de Acopio" onClick={() => setLinkedCenter('Iglesia San José')}>
+            <button 
+              className={`editor-tool-btn ${showCenterSearch || linkedCenter ? 'active' : ''}`} 
+              title="Vincular Centro de Acopio" 
+              onClick={() => {
+                if (linkedCenter) {
+                  setLinkedCenter(undefined);
+                } else {
+                  setShowCenterSearch(!showCenterSearch);
+                }
+              }}
+              style={{ background: showCenterSearch || linkedCenter ? '#eff6ff' : 'transparent' }}
+            >
               <MapPin size={20} />
             </button>
             <button className="editor-tool-btn" title="Adjuntar Imagen (Próximamente)">

@@ -907,6 +907,7 @@ function App() {
         isOpen={showReportModal} 
         onClose={() => setShowReportModal(false)} 
         contextLocation={selectedLoc ? selectedLoc.name : undefined}
+        locations={acopios}
         onSubmit={async (content, isCritical, linkedCenterName, contactPhone) => {
           // Resolve linked center ID from name if provided
           let linked_center_id = undefined;
