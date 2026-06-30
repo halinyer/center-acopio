@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { SwipeableSheet } from './components/SwipeableSheet';
+import { DynamicBottomNav } from './components/DynamicBottomNav';
 import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation } from './lib/supabase';
-import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell } from 'lucide-react';
+import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, PenLine } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -682,8 +683,46 @@ function App() {
     return url;
   };
 
+  const reportesActions = [
+    {
+      icon: <Newspaper size={20} />,
+      label: 'Todo',
+      onClick: () => console.log('Ver Todo')
+    },
+    {
+      icon: <AlertTriangle size={20} />,
+      label: 'Alertas',
+      onClick: () => console.log('Ver Alertas'),
+      isPrimary: true
+    },
+    {
+      icon: <PenLine size={20} />,
+      label: 'Reportar',
+      onClick: () => setShowAuthModal(true)
+    }
+  ];
+
+  const mapActions = [
+    {
+      icon: <Plus size={20} />,
+      label: 'Registrar',
+      onClick: isUnlocked ? startPlacing : () => setShowAuthModal(true)
+    },
+    {
+      icon: <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✋</div>,
+      label: 'Quiero Ayudar',
+      onClick: () => setShowRadarModal(true),
+      isPrimary: true
+    },
+    {
+      icon: <ListIcon size={20} />,
+      label: 'Directorio',
+      onClick: () => setShowList(true)
+    }
+  ];
+
   return (
-    <div className="app">
+    <div className="app-container">
       {locating && (
         <div className="loading-overlay" style={{ padding: '32px', textAlign: 'center', background: 'var(--white)' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'pulse 1.5s infinite' }}>🇻🇪</div>
@@ -822,25 +861,15 @@ function App() {
              <h3>Novedades Tácticas</h3>
              <p>El feed de reportes estará aquí...</p>
           </div>
+          {!placingMode && !showList && (
+            <DynamicBottomNav actions={reportesActions} />
+          )}
         </div>
       )}
 
       {/* BOTTOM NAVIGATION BAR (Option A) */}
       {viewMode === 'mapa' && !placingMode && !showList && (
-        <div className="bottom-nav-bar">
-          <button className="nav-btn" onClick={isUnlocked ? startPlacing : () => setShowAuthModal(true)}>
-            <Plus size={20} />
-            <span>Registrar</span>
-          </button>
-          <button className="nav-btn primary" onClick={() => setShowRadarModal(true)}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✋</div>
-            <span>Quiero Ayudar</span>
-          </button>
-          <button className="nav-btn" onClick={() => setShowList(true)}>
-            <ListIcon size={20} />
-            <span>Directorio</span>
-          </button>
-        </div>
+        <DynamicBottomNav actions={mapActions} />
       )}
 
       {viewMode === 'mapa' && nearest && !placingMode && !showList && !selectedLoc && (
