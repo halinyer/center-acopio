@@ -7,6 +7,7 @@ import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getU
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, Megaphone } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './index.css';
@@ -303,7 +304,7 @@ function App() {
     } catch { /* quota exceeded */ }
   }, [notificationsHistory]);
 
-  const showToast = (title: string, desc: string, locId?: string) => {
+  const showToast = useCallback((title: string, desc: string, locId?: string) => {
     const id = Date.now();
     setActiveToast({title, desc, id, locId});
     
@@ -314,7 +315,7 @@ function App() {
     setTimeout(() => {
       setActiveToast(prev => prev?.id === id ? null : prev);
     }, 4000);
-  };
+  }, []);
   
   const unreadCount = notificationsHistory.filter(n => !n.read).length;
 
@@ -340,11 +341,25 @@ function App() {
     return id;
   });
 
-  const openDetails = (loc: LocationRow) => {
+  const openDetails = useCallback((loc: LocationRow) => {
     setShowList(false);
     setSelectedLoc(loc);
     setMapFlyTo({ lat: loc.lat, lng: loc.lng });
-  };
+  }, []);
+
+  const handleRequestLogin = useCallback(() => {
+    localStorage.setItem('tactical_login_intent', 'support');
+    setShowLoginSheet(true);
+  }, []);
+
+  const handleCenterClick = useCallback((centerId: string) => {
+    const center = acopios.find(a => a.id === centerId);
+    if (center) {
+      setViewMode('mapa');
+      setFlyTarget({ lat: center.lat, lng: center.lng, zoom: 17 });
+      setSelectedLoc(center);
+    }
+  }, [acopios]);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -840,17 +855,21 @@ function App() {
 
           {placedPos && <Marker position={[placedPos.lat, placedPos.lng]} icon={placingIcon()} />}
 
-          {filtered.map((loc) => {
-            const isNearest = nearest?.location.id === loc.id;
-            return (
-              <Marker 
-                key={loc.id} 
-                position={[loc.lat, loc.lng]} 
-                icon={makeIcon(loc.type, isNearest)}
-                eventHandlers={{ click: () => openDetails(loc) }}
-              />
-            );
-          })}
+          {useMemo(() => (
+            <MarkerClusterGroup chunkedLoading maxClusterRadius={40}>
+              {filtered.map((loc) => {
+                const isNearest = nearest?.location.id === loc.id;
+                return (
+                  <Marker 
+                    key={loc.id} 
+                    position={[loc.lat, loc.lng]} 
+                    icon={makeIcon(loc.type, isNearest)}
+                    eventHandlers={{ click: () => openDetails(loc) }}
+                  />
+                );
+              })}
+            </MarkerClusterGroup>
+          ), [filtered, nearest, openDetails])}
         </MapContainer>
       </div>
 
@@ -917,22 +936,9 @@ function App() {
             locations={acopios}
             authUser={authUser}
             onNotify={showToast}
-            onRequestLogin={() => {
-              localStorage.setItem('tactical_login_intent', 'support');
-              setShowLoginSheet(true);
-            }}
-            onCenterClick={(centerId) => {
-              const center = acopios.find(a => a.id === centerId);
-              if (center) {
-                setViewMode('mapa');
-                setFlyTarget({ lat: center.lat, lng: center.lng, zoom: 17 });
-                setSelectedLoc(center);
-              } else {
-                setViewMode('mapa');
-                setFlyTarget({ lat: 10.2310, lng: -66.8631, zoom: 17 });
-              }
-            }}
-            onScrollDir={(dir) => setNavHidden(dir === 'down')}
+            onRequestLogin={handleRequestLogin}
+            onCenterClick={handleCenterClick}
+            onScrollDir={useCallback((dir: 'up' | 'down') => setNavHidden(dir === 'down'), [])}
           />
         </div>
       </div>

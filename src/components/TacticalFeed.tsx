@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { MapPin, Check, MoreHorizontal, Share, MessageCircle, Trash2 } from 'lucide-react';
 import { getTacticalFeed, subscribeToTacticalFeed, supabase, getDistanceKm, deleteTacticalReport } from '../lib/supabase';
@@ -26,7 +26,7 @@ type TacticalFeedProps = {
   onNotify?: (title: string, desc: string, type?: 'info'|'warning'|'error') => void;
 };
 
-export const TacticalFeed = ({ 
+export const TacticalFeed = memo(({ 
   filter,
   userLat,
   userLng, 
@@ -512,4 +512,4 @@ export const TacticalFeed = ({
       )}
     </div>
   );
-};
+});
