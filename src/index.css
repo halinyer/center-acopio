@@ -1120,7 +1120,13 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 .feed-content { font-size: 15px; line-height: 20px; color: #0f1419; margin: 0 0 12px 0; font-weight: 400; word-wrap: break-word; white-space: pre-wrap; }
 
 .feed-media-container { margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 1px solid var(--gray-200); }
-.feed-media { width: 100%; max-height: 350px; object-fit: cover; display: block; }
+.feed-media { 
+  width: 100%; 
+  height: auto;
+  max-height: 560px; /* Dinámico: Crecimiento natural pero limitado para fotos super altas */
+  object-fit: cover; 
+  display: block; 
+}
 
 .feed-linked-badge {
   display: inline-flex; align-items: center; gap: 4px;
