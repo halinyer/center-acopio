@@ -7,7 +7,6 @@ import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getU
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, Megaphone } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './index.css';
@@ -856,7 +855,7 @@ function App() {
           {placedPos && <Marker position={[placedPos.lat, placedPos.lng]} icon={placingIcon()} />}
 
           {useMemo(() => (
-            <MarkerClusterGroup chunkedLoading maxClusterRadius={40}>
+            <>
               {filtered.map((loc) => {
                 const isNearest = nearest?.location.id === loc.id;
                 return (
@@ -868,7 +867,7 @@ function App() {
                   />
                 );
               })}
-            </MarkerClusterGroup>
+            </>
           ), [filtered, nearest, openDetails])}
         </MapContainer>
       </div>
