@@ -1,4 +1,4 @@
-import { Clock, MapPin, Check, MoreHorizontal } from 'lucide-react';
+import { Clock, MapPin, Check, MoreHorizontal, Share } from 'lucide-react';
 
 const mockPosts = [
   {
@@ -36,8 +36,18 @@ const mockPosts = [
   }
 ];
 
-export const TacticalFeed = ({ filter }: { filter: 'todo' | 'alertas' }) => {
+export const TacticalFeed = ({ filter, onCenterClick }: { filter: 'todo' | 'alertas', onCenterClick?: (c: string) => void }) => {
   const displayedPosts = filter === 'alertas' ? mockPosts.filter(p => p.isCritical) : mockPosts;
+
+  const handleShare = (post: any) => {
+    const text = `🚨 Alerta en ${post.zone}:\n"${post.content}"\n⏱️ ${post.time}\n🔗 Reportado vía AcopioVen`;
+    if (navigator.share) {
+      navigator.share({ title: 'AcopioVen', text }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(text);
+      alert('Copiado al portapapeles');
+    }
+  };
 
   return (
     <div className="tactical-feed-container">
@@ -63,7 +73,7 @@ export const TacticalFeed = ({ filter }: { filter: 'todo' | 'alertas' }) => {
             <p className="feed-content">{post.content}</p>
             
             {post.linkedCenter && (
-              <div className="feed-linked-badge">
+              <div className="feed-linked-badge" onClick={() => onCenterClick?.(post.linkedCenter)} style={{cursor: 'pointer'}}>
                 <MapPin size={12} /> {post.linkedCenter}
               </div>
             )}
@@ -71,6 +81,9 @@ export const TacticalFeed = ({ filter }: { filter: 'todo' | 'alertas' }) => {
             <div className="feed-card-actions">
               <button className="action-btn-subtle">
                 <Check size={16} /> Respaldar ({post.supports})
+              </button>
+              <button className="action-btn-subtle" onClick={() => handleShare(post)}>
+                <Share size={16} /> Compartir
               </button>
             </div>
           </div>

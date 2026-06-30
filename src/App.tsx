@@ -863,7 +863,21 @@ function App() {
       {/* VISTA DE REPORTES */}
       {viewMode === 'reportes' && (
         <div className="tactical-feed-view">
-          <TacticalFeed filter={feedFilter} />
+          <TacticalFeed 
+            filter={feedFilter} 
+            onCenterClick={(centerName) => {
+              const center = acopios.find(a => a.name === centerName);
+              if (center) {
+                setViewMode('mapa');
+                setFlyTarget({ lat: center.lat, lng: center.lng, zoom: 17 });
+                setSelectedLoc(center);
+              } else {
+                // Si no se encuentra (mock data), simulamos el vuelo al centro por defecto
+                setViewMode('mapa');
+                setFlyTarget({ lat: 10.2310, lng: -66.8631, zoom: 17 });
+              }
+            }}
+          />
           {!placingMode && !showList && (
             <DynamicBottomNav actions={reportesActions} />
           )}

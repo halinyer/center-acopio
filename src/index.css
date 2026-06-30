@@ -1112,7 +1112,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 }
 .action-btn-subtle:hover, .action-btn-subtle:active { color: #34C759; }
 
-/* ========== REPORT EDITOR ========== */
+/* ========== REPORT EDITOR (TWITTER STYLE) ========== */
 .report-editor-sheet {
   background: #1C1C1E; color: #F2F2F7;
   border-top-left-radius: 24px; border-top-right-radius: 24px;
@@ -1121,32 +1121,45 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   padding: 20px; display: flex; flex-direction: column; gap: 16px;
   font-family: var(--font);
 }
-.editor-title { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 4px; }
-.editor-context { font-size: 13px; color: #8E8E93; background: #2C2C2E; padding: 6px 12px; border-radius: 12px; align-self: flex-start; }
-
-.editor-textarea {
-  background: #2C2C2E; color: #fff;
-  border: 1px solid #3A3A3C; border-radius: 16px;
-  padding: 16px; min-height: 120px; font-size: 16px;
-  resize: none; width: 100%; outline: none;
-}
-.editor-textarea:focus { border-color: #0A84FF; }
-.editor-char-count { text-align: right; font-size: 12px; color: #8E8E93; margin-top: -8px; }
-
-.editor-options { display: flex; }
-.critical-toggle {
-  display: flex; align-items: center; gap: 8px;
-  background: transparent; color: #8E8E93;
-  border: 1px solid #3A3A3C; border-radius: 20px;
-  padding: 8px 16px; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: all 0.2s;
-}
-.critical-toggle.active { background: rgba(255, 69, 58, 0.15); color: #FF453A; border-color: #FF453A; }
-
-.editor-submit-btn {
-  display: flex; justify-content: center; align-items: center; gap: 8px;
+.editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.editor-title { font-size: 16px; font-weight: 700; color: #fff; }
+.editor-submit-btn-small {
   background: #0A84FF; color: white;
-  border: none; border-radius: 16px; padding: 14px;
-  font-size: 16px; font-weight: 700; cursor: pointer;
+  border: none; border-radius: 20px; padding: 6px 16px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
 }
-.editor-submit-btn:disabled { background: #3A3A3C; color: #8E8E93; cursor: not-allowed; }
+.editor-submit-btn-small:disabled { background: #3A3A3C; color: #8E8E93; cursor: not-allowed; }
+
+.editor-body { display: flex; gap: 12px; align-items: flex-start; }
+.editor-avatar { width: 40px; height: 40px; border-radius: 20px; background: #3A3A3C; object-fit: cover; }
+
+.editor-input-area { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.editor-textarea {
+  background: transparent; color: #fff;
+  border: none; padding: 4px 0; min-height: 100px; 
+  font-size: 18px; line-height: 1.4; resize: none; width: 100%; outline: none;
+}
+.editor-textarea::placeholder { color: #8E8E93; }
+
+.editor-context-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(10, 132, 255, 0.15); color: #409CFF;
+  padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 500;
+  cursor: pointer; align-self: flex-start;
+}
+
+.editor-toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid #3A3A3C; padding-top: 12px; margin-top: 8px;
+}
+.editor-tools-left { display: flex; gap: 12px; }
+.editor-tool-btn {
+  background: transparent; border: none; color: #0A84FF;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px; border-radius: 50%; cursor: pointer; transition: background 0.2s;
+}
+.editor-tool-btn:hover { background: rgba(10, 132, 255, 0.1); }
+.editor-tool-btn.critical { color: #8E8E93; }
+.editor-tool-btn.critical.active { color: #FF453A; background: rgba(255, 69, 58, 0.1); }
+
+.editor-char-count { font-size: 13px; color: #8E8E93; }
