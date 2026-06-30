@@ -32,7 +32,7 @@ export const TacticalFeed = ({
   onScrollDir
 }: TacticalFeedProps) => {
   const [posts, setPosts] = useState<TacticalPost[]>([]);
-  const [newPostsCount, setNewPostsCount] = useState(0);
+  const [newPostsQueue, setNewPostsQueue] = useState<TacticalPost[]>([]);
   const [outbox, setOutbox] = useState<TacticalPost[]>([]);
   const [viewerPost, setViewerPost] = useState<TacticalPost | null>(null);
   
@@ -112,15 +112,21 @@ export const TacticalFeed = ({
     window.addEventListener('tactical_outbox_updated', loadOutbox);
 
     const unsubscribe = subscribeToTacticalFeed((newPost) => {
-      // 1. Anti-Eco: ignorar posts propios para no mostrar píldora fantasma
-      if (authUser && newPost.user_id === authUser.id) return;
+      // 1. Anti-Eco Reforzado: ignorar posts propios (por ID o por Nombre como fallback)
+      if (authUser && (newPost.user_id === authUser.id || newPost.author_name === authUser?.user_metadata?.full_name)) return;
       
-      // 2. Sensor Quirúrgico: Calcular distancia (Haversine)
+      // 2. Sensor Quirúrgico: Calcular distancia y Score localmente
       const dist = getDistanceKm(lat, lng, newPost.lat, newPost.lng);
       
-      // 3. Actualizar Píldora SOLO si es local o crítico
-      if (dist <= 20 || newPost.is_critical) {
-        setNewPostsCount(prev => prev + 1);
+      let relScore = 1;
+      if (newPost.is_critical && dist <= 20) relScore = 4;
+      else if (!newPost.is_critical && dist <= 20) relScore = 3;
+      else if (newPost.is_critical && dist > 20) relScore = 2;
+
+      // 3. Solo pre-encolar si es local o crítico
+      if (relScore >= 2) {
+        const enrichedPost = { ...newPost, relevance_score: relScore, distance_km: dist };
+        setNewPostsQueue(prev => [enrichedPost, ...prev]);
       }
     });
     return () => {
@@ -186,7 +192,7 @@ export const TacticalFeed = ({
 
   const displayedPosts = filter === 'alertas' ? posts.filter(p => p.is_critical) : posts;
 
-  if (displayedPosts.length === 0 && newPostsCount === 0) {
+  if (displayedPosts.length === 0 && newPostsQueue.length === 0) {
     return <div className="tactical-feed-container" style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>No hay reportes recientes en tu zona.</div>;
   }
 
@@ -194,27 +200,43 @@ export const TacticalFeed = ({
     <div className="tactical-feed-container" onScroll={handleScroll} style={{ position: 'relative' }}>
       
       {/* Píldora de Realtime (Protocolo Burbuja) */}
-      {newPostsCount > 0 && (
+      {newPostsQueue.length > 0 && (
         <div style={{ position: 'sticky', top: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <button 
             onClick={() => {
-              setPosts([]);
-              setLoading(true);
-              setHasMore(true);
-              setNewPostsCount(0);
-              getTacticalFeed(lat, lng, undefined, undefined, undefined, 15).then(data => {
-                setPosts(data);
-                setLoading(false);
+              setPosts(prev => {
+                const combined = [...newPostsQueue, ...prev];
+                // Inyección Matemática: Reordenar respetando el Cursor SQL
+                combined.sort((a, b) => {
+                  const scoreA = a.relevance_score ?? 1;
+                  const scoreB = b.relevance_score ?? 1;
+                  if (scoreA !== scoreB) return scoreB - scoreA;
+                  
+                  const timeA = new Date(a.created_at).getTime();
+                  const timeB = new Date(b.created_at).getTime();
+                  if (timeA !== timeB) return timeB - timeA;
+                  
+                  return a.id.localeCompare(b.id);
+                });
+                
+                // Evitar duplicados (O(n))
+                const uniqueIds = new Set();
+                return combined.filter(p => {
+                  if (uniqueIds.has(p.id)) return false;
+                  uniqueIds.add(p.id);
+                  return true;
+                });
               });
+              setNewPostsQueue([]);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             style={{
-              background: 'var(--blue)', color: 'white', border: 'none', borderRadius: '24px', pointerEvents: 'auto',
-              padding: '8px 20px', fontSize: '14px', fontWeight: '600', boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+              pointerEvents: 'auto', background: 'var(--blue)', color: 'white', border: 'none', 
+              padding: '8px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: '600', boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
             }}
           >
-            ↑ {newPostsCount} Nuevo{newPostsCount > 1 ? 's' : ''} Reporte{newPostsCount > 1 ? 's' : ''}
+            ↑ {newPostsQueue.length} Nuevo{newPostsQueue.length > 1 ? 's' : ''} Reporte{newPostsQueue.length > 1 ? 's' : ''}
           </button>
         </div>
       )}
