@@ -42,12 +42,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   background-size: 30px 30px;
 }
 
-/* LEAFLET HARDWARE ACCELERATION (GPU) */
-.leaflet-tile-pane, .leaflet-marker-pane, .leaflet-shadow-pane {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
+
 
 /* ========== TOP BAR ========== */
 .top-bar {
