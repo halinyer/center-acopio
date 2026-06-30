@@ -179,13 +179,27 @@ export const TacticalFeed = ({
     }
   }, [loadingMore, lat, lng]); // posts is read inside, but only triggers when loadingMore turns true
 
-  const handleShare = (post: TacticalPost) => {
-    const text = `🚨 Alerta en ${post.zone}:\n"${post.content}"\n⏱️ ${timeAgo(post.created_at)}\n🔗 Reportado vía AcopioVen`;
+  const handleShare = async (post: TacticalPost) => {
+    const shareUrl = `https://www.acopioven.com/`;
+    const shareText = `🚨 Reporte en AcopioVen:\n"${post.content}"\n\n📍 ${post.zone ? `Zona: ${post.zone}` : 'Venezuela'}\n⏱️ ${timeAgo(post.created_at)}`;
+    
     if (navigator.share) {
-      navigator.share({ title: 'AcopioVen', text }).catch(console.error);
+      try {
+        await navigator.share({
+          title: 'Reporte en AcopioVen',
+          text: shareText,
+          url: shareUrl
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
     } else {
-      navigator.clipboard.writeText(text);
-      alert('Copiado al portapapeles');
+      navigator.clipboard.writeText(`${shareText}\n\n🔗 Enlace: ${shareUrl}`);
+      if (onNotify) {
+        onNotify("Enlace copiado al portapapeles");
+      } else {
+        alert("Enlace copiado al portapapeles");
+      }
     }
   };
 
