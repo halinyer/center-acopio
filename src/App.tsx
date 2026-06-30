@@ -906,6 +906,8 @@ function App() {
         <div className="tactical-feed-view">
           <TacticalFeed 
             filter={feedFilter} 
+            userLat={userPos?.lat}
+            userLng={userPos?.lng}
             locations={acopios}
             authUser={authUser}
             onRequestLogin={() => {

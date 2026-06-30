@@ -16,6 +16,8 @@ function timeAgo(dateString: string): string {
 
 type TacticalFeedProps = {
   filter: 'todo' | 'alertas';
+  userLat?: number;
+  userLng?: number;
   onCenterClick?: (c: string) => void;
   locations?: LocationRow[];
   authUser?: any;
@@ -24,7 +26,9 @@ type TacticalFeedProps = {
 };
 
 export const TacticalFeed = ({ 
-  filter, 
+  filter,
+  userLat,
+  userLng, 
   onCenterClick, 
   locations,
   authUser,
@@ -40,9 +44,9 @@ export const TacticalFeed = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  // Mock coordenadas locales (En prod: usar GPS real)
-  const lat = 10.4806;
-  const lng = -66.9036;
+  // Coordenadas reales del usuario
+  const lat = userLat ?? 10.4806;
+  const lng = userLng ?? -66.9036;
 
   // Infinite Scroll Observer
   const observer = useRef<IntersectionObserver | null>(null);
