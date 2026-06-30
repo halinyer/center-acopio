@@ -39,7 +39,8 @@ function placingIcon(): L.DivIcon {
 
 function SupportContact() {
   return (
-    <div style={{ background: 'rgba(37,211,102,0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+    <div className="help-step" style={{ background: 'rgba(37,211,102,0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+      <span className="help-step-icon" style={{ color: '#25D366' }}><MessageCircle size={22} /></span>
       <p style={{ margin: 0, fontSize: '13px', color: 'var(--gray-800)', lineHeight: '1.5' }}>
         <strong>Soporte y Registro:</strong> Para evitar centros fantasmas, verificamos la identidad de los encargados. Si deseas registrar tu centro o tienes dudas, escríbenos al WhatsApp: 
         <br/><a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none', display: 'inline-block', marginTop: '4px' }}>+58 424-1930273</a>
