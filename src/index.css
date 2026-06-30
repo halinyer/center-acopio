@@ -1073,7 +1073,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 .tactical-feed-container {
   height: 100%;
   overflow-y: auto;
-  padding: 80px 16px 120px 16px;
+  padding: 80px 0 120px 0;
   font-family: var(--font);
   max-width: 600px;
   margin: 0 auto;
@@ -1083,9 +1083,9 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 
 .feed-card {
   background: var(--bg-primary);
-  padding: 16px 20px;
+  padding: 16px 16px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   border-bottom: 1px solid var(--gray-200);
   /* Virtualización nativa para listas largas */
   content-visibility: auto;
@@ -1119,8 +1119,8 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
 
 .feed-content { font-size: 15px; line-height: 20px; color: #0f1419; margin: 0 0 12px 0; font-weight: 400; word-wrap: break-word; white-space: pre-wrap; }
 
-.feed-media-container { margin-bottom: 12px; border-radius: 16px; overflow: hidden; border: 1px solid var(--gray-200); }
-.feed-media { width: 100%; max-height: 450px; object-fit: cover; display: block; }
+.feed-media-container { margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 1px solid var(--gray-200); }
+.feed-media { width: 100%; max-height: 350px; object-fit: cover; display: block; }
 
 .feed-linked-badge {
   display: inline-flex; align-items: center; gap: 4px;
