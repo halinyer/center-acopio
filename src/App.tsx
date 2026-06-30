@@ -742,6 +742,7 @@ function App() {
         else setShowReportModal(true);
       },
       isPrimary: true
+    }
   ];
 
   const [navHidden, setNavHidden] = useState(false);
