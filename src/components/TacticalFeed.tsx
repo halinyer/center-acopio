@@ -47,12 +47,13 @@ export const TacticalFeed = ({
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
-    if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+    if (currentScrollY > lastScrollY.current + 20 && currentScrollY > 50) {
       onScrollDir?.('down');
-    } else if (currentScrollY < lastScrollY.current) {
+      lastScrollY.current = currentScrollY;
+    } else if (currentScrollY < lastScrollY.current - 20) {
       onScrollDir?.('up');
+      lastScrollY.current = currentScrollY;
     }
-    lastScrollY.current = currentScrollY;
   };
 
   const lastPostElementRef = useCallback((node: HTMLDivElement) => {

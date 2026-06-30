@@ -853,7 +853,7 @@ function App() {
       </div>
 
       {!placingMode && (
-        <div className={`top-bar ${viewMode === 'reportes' ? 'top-bar-glass' : ''}`}>
+        <div className="top-bar">
           <div className="brand">
             <div className="brand-icon"><Package size={24} color="white" /></div>
             {/* Ocultamos el texto en pantallas muy pequeñas para dar espacio al switch */}
