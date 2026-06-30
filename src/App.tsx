@@ -101,6 +101,7 @@ function MapResizer() {
 function App() {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [acopios, setAcopios] = useState<LocationRow[]>([]);
+  const [viewMode, setViewMode] = useState<'mapa' | 'reportes'>('mapa');
   
   // Refs para evitar re-suscripción en WebSockets
   const userPosRef = useRef(userPos);
@@ -152,7 +153,7 @@ function App() {
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   // Comunidad Ambiental
-  const [networkPulse, setNetworkPulse] = useState<string | null>(null);
+  const [, setNetworkPulse] = useState<string | null>(null);
   const [globalStats, setGlobalStats] = useState<{ centros_operativos: number, validaciones_24h: number } | null>(null);
 
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -733,7 +734,7 @@ function App() {
         </div>
       )}
 
-      <div className={`map-full ${placingMode && !showForm ? 'placing-cursor' : ''}`}>
+      <div className={`map-full ${placingMode && !showForm ? 'placing-cursor' : ''} ${viewMode === 'reportes' ? 'hidden' : ''}`}>
         <MapContainer center={[10.4806, -66.9036]} zoom={13} zoomControl={false} style={{ height: '100%', width: '100%' }}>
           <TileLayer 
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" 
@@ -771,13 +772,25 @@ function App() {
         <div className="top-bar">
           <div className="brand">
             <div className="brand-icon"><Package size={24} color="white" /></div>
+            {/* Ocultamos el texto en pantallas muy pequeñas para dar espacio al switch */}
             <div className="brand-text">Acopio<span>Ven</span></div>
           </div>
-          {networkPulse && (
-            <div className="network-pulse">
-              <div className="network-pulse-text">{networkPulse}</div>
-            </div>
-          )}
+          
+          <div className="view-switch">
+            <button 
+              className={`switch-btn ${viewMode === 'mapa' ? 'active' : ''}`}
+              onClick={() => setViewMode('mapa')}
+            >
+              Mapa
+            </button>
+            <button 
+              className={`switch-btn ${viewMode === 'reportes' ? 'active' : ''}`}
+              onClick={() => setViewMode('reportes')}
+            >
+              Reportes
+            </button>
+          </div>
+
           <div className="top-actions">
               <button 
                 className="btn-circle" 
@@ -791,14 +804,29 @@ function App() {
                 <Bell size={18} />
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
-            <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
-            <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Map Controls - bottom right */}
+      {viewMode === 'mapa' && !placingMode && !showList && (
+         <div className="floating-map-controls">
+           <button className="btn-circle" onClick={handleLocate} title="Mi ubicación"><MapPin size={18} /></button>
+         </div>
+      )}
+
+      {/* VISTA DE REPORTES (Placeholder por ahora) */}
+      {viewMode === 'reportes' && (
+        <div className="tactical-feed-view">
+          <div className="tactical-feed-content">
+             <h3>Novedades Tácticas</h3>
+             <p>El feed de reportes estará aquí...</p>
           </div>
         </div>
       )}
 
       {/* BOTTOM NAVIGATION BAR (Option A) */}
-      {!placingMode && !showList && (
+      {viewMode === 'mapa' && !placingMode && !showList && (
         <div className="bottom-nav-bar">
           <button className="nav-btn" onClick={isUnlocked ? startPlacing : () => setShowAuthModal(true)}>
             <Plus size={20} />
@@ -815,7 +843,7 @@ function App() {
         </div>
       )}
 
-      {nearest && !placingMode && !showList && !selectedLoc && (
+      {viewMode === 'mapa' && nearest && !placingMode && !showList && !selectedLoc && (
         <div className="nearest-chip" onClick={() => openDetails(nearest.location)}>
           <div className="chip-dot" />
           <div className="chip-info">
@@ -881,9 +909,12 @@ function App() {
       {/* LIST PANEL */}
       <SwipeableSheet isOpen={showList} onClose={() => setShowList(false)} className="list-sheet">
             <div className="list-handle" />
-            <div className="list-header">
-              <h2 style={{display:'flex', alignItems:'center', gap:'8px'}}><ListIcon size={20} /> Todos los puntos cercanos</h2>
-              <button className="list-close" onClick={() => setShowList(false)}>✕</button>
+            <div className="list-header" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px'}}>
+              <h2 style={{margin: 0}}>Directorio de Acopios</h2>
+              <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+                <button className="btn-circle" onClick={() => setShowHelpModal(true)} title="Cómo funciona"><HelpCircle size={18} /></button>
+                <button className="modal-close" onClick={() => setShowList(false)} style={{position: 'static', transform: 'none'}}>✕</button>
+              </div>
             </div>
             
             <div className="list-search-container">
