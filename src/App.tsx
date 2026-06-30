@@ -37,6 +37,17 @@ function placingIcon(): L.DivIcon {
   });
 }
 
+function SupportContact() {
+  return (
+    <div style={{ background: 'rgba(37,211,102,0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+      <p style={{ margin: 0, fontSize: '13px', color: 'var(--gray-800)', lineHeight: '1.5' }}>
+        <strong>Soporte y Registro:</strong> Para evitar centros fantasmas, verificamos la identidad de los encargados. Si deseas registrar tu centro o tienes dudas, escríbenos al WhatsApp: 
+        <br/><a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none', display: 'inline-block', marginTop: '4px' }}>+58 424-1930273</a>
+      </p>
+    </div>
+  );
+}
+
 function userIcon(): L.DivIcon {
   return L.divIcon({
     className: '',
@@ -821,12 +832,7 @@ function App() {
       <SwipeableSheet isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} className="auth-card">
             <div className="list-handle" />
             <h2 style={{display:'flex', alignItems:'center', gap:'8px', margin: '0 0 12px 0'}}><Lock size={20} /> Registrar un Centro</h2>
-            <div style={{ background: 'rgba(37,211,102,0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
-              <p style={{ margin: 0, fontSize: '13px', color: 'var(--gray-800)', lineHeight: '1.5' }}>
-                Para evitar centros fantasmas, verificamos la identidad de los encargados. Si deseas registrar tu centro y no tienes código, escríbenos al WhatsApp: 
-                <br/><a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none', display: 'inline-block', marginTop: '4px' }}>+58 424-1930273</a>
-              </p>
-            </div>
+            <SupportContact />
             <form onSubmit={handleAuthSubmit}>
               <input 
                 type="password" 
@@ -862,10 +868,7 @@ function App() {
                 <span className="help-step-icon" style={{ color: 'var(--gray-900)' }}>✋</span>
                 <p><strong>Quiero Ayudar:</strong> Si tienes transporte, medicina o fuerza física para aportar, usa el botón <strong>Quiero Ayudar</strong> en la barra inferior para conectar directamente con los centros que necesitan tu ayuda.</p>
               </div>
-              <div className="help-step" style={{ background: 'rgba(37,211,102,0.1)', padding: '10px', borderRadius: '8px' }}>
-                <span className="help-step-icon" style={{ color: '#25D366' }}><MessageCircle size={22} /></span>
-                <p><strong>Soporte y Registro:</strong> Si deseas agregar tu centro de acopio o tienes dudas sobre la plataforma, contáctanos al <a href="https://wa.me/584241930273" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none' }}>+58 424-1930273</a>.</p>
-              </div>
+              <SupportContact />
               <button className="help-close-btn" onClick={() => setShowHelpModal(false)}>Entendido</button>
             </div>
       </SwipeableSheet>
