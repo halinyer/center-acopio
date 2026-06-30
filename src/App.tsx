@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { SwipeableSheet } from './components/SwipeableSheet';
 import { DynamicBottomNav } from './components/DynamicBottomNav';
 import { TacticalFeed } from './components/TacticalFeed';
+import { ReportEditor } from './components/ReportEditor';
 import { supabase, isDemoMode, DEMO_ACOPIOS, getDistanceKm, reverseGeocode, getUserState, searchLocation } from './lib/supabase';
 import { Lock, Plus, List as ListIcon, MapPin, HelpCircle, Hospital, Church, Package, Phone, MessageCircle, Map as MapIcon, User, Pointer, CheckCircle2, Send, Bell, Newspaper, AlertTriangle, PenLine } from 'lucide-react';
 import type { LocationRow } from './lib/supabase';
@@ -105,6 +106,7 @@ function App() {
   const [acopios, setAcopios] = useState<LocationRow[]>([]);
   const [viewMode, setViewMode] = useState<'mapa' | 'reportes'>('mapa');
   const [feedFilter, setFeedFilter] = useState<'todo' | 'alertas'>('todo');
+  const [showReportModal, setShowReportModal] = useState(false);
   
   // Refs para evitar re-suscripción en WebSockets
   const userPosRef = useRef(userPos);
@@ -701,7 +703,7 @@ function App() {
     {
       icon: <PenLine size={20} />,
       label: 'Reportar',
-      onClick: () => setShowAuthModal(true),
+      onClick: () => setShowReportModal(true),
       isPrimary: true
     }
   ];
@@ -886,7 +888,14 @@ function App() {
 
 
 
-      {/* AUTH MODAL */}
+      <ReportEditor 
+        isOpen={showReportModal} 
+        onClose={() => setShowReportModal(false)} 
+        onSubmit={(content, isCritical) => {
+          console.log('New Report:', { content, isCritical });
+        }}
+      />
+
       <SwipeableSheet isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} className="help-sheet">
             <div className="list-handle" />
             <div className="modal-header">
