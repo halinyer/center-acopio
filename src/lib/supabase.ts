@@ -268,8 +268,6 @@ export function subscribeToTacticalFeed(
 ) {
   if (isDemoMode || !supabase) return () => {};
 
-  const myDeviceId = getDeviceId();
-
   const channel = supabase.channel('public:tactical_feed')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tactical_feed' }, payload => {
       const newPost = payload.new as TacticalPost;
