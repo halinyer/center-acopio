@@ -3,7 +3,31 @@
 -- Protocolo Amnesia y Radar Táctico
 -- ==========================================
 
--- 1. Tabla Principal
+-- 0. Habilitar extensión UUID (Requisito previo)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. Tabla Base (Acopios/Centros)
+CREATE TABLE IF NOT EXISTS public.acopios (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('hospital', 'centro_acopio', 'iglesia')),
+    address TEXT,
+    needs TEXT,
+    leader_name TEXT,
+    leader_phone TEXT,
+    photo_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    expires_at TIMESTAMP WITH TIME ZONE
+);
+
+ALTER TABLE public.acopios ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Acopios visibles para todos" ON public.acopios;
+CREATE POLICY "Acopios visibles para todos" ON public.acopios FOR SELECT USING (true);
+
+-- 2. Tabla Principal (Feed Táctico)
 CREATE TABLE IF NOT EXISTS public.tactical_feed (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -24,10 +48,23 @@ CREATE TABLE IF NOT EXISTS public.tactical_feed (
 -- Habilitar RLS
 ALTER TABLE public.tactical_feed ENABLE ROW LEVEL SECURITY;
 
+-- Añadir a Realtime para WebSockets (ignorar si ya existe)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'tactical_feed'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.tactical_feed;
+  END IF;
+END $$;
+
 -- Políticas
+DROP POLICY IF EXISTS "Reportes visibles para todos" ON public.tactical_feed;
 CREATE POLICY "Reportes visibles para todos" ON public.tactical_feed
     FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Usuarios autenticados pueden insertar" ON public.tactical_feed;
 CREATE POLICY "Usuarios autenticados pueden insertar" ON public.tactical_feed
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
