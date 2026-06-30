@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Clock, MapPin, Check, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
-import { getTacticalFeed, subscribeToTacticalFeed } from '../lib/supabase';
+import { getTacticalFeed, subscribeToTacticalFeed, supabase } from '../lib/supabase';
 import type { TacticalPost, LocationRow } from '../lib/supabase';
 
 function timeAgo(dateString: string): string {
@@ -205,6 +205,9 @@ export const TacticalFeed = ({
                       setPosts(prev => prev.map(p => p.id === post.id ? { ...p, supports_count: p.supports_count + 1 } : p));
                       supported[post.id] = true;
                       localStorage.setItem('tactical_supported', JSON.stringify(supported));
+                      
+                      // Enviar a Supabase para que sea permanente
+                      supabase.rpc('increment_support', { p_post_id: post.id }).catch(console.error);
                     }}
                   >
                     <Check size={16} /> Respaldar ({post.supports_count})
