@@ -841,8 +841,6 @@ function App() {
             attribution='&copy; OSM &copy; CARTO'
             detectRetina={true}
             keepBuffer={8}
-            updateWhenZooming={false}
-            updateWhenIdle={true}
           />
           <MapCenterer flyTo={mapFlyTo} />
           {flyTarget && <FlyTo lat={flyTarget.lat} lng={flyTarget.lng} zoom={flyTarget.zoom} />}
