@@ -153,12 +153,23 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
               )}
 
               {linkedCenter ? (
-                <div className="editor-context-chip" onClick={() => setLinkedCenter(undefined)} style={{ marginTop: '4px' }}>
-                  <MapPin size={14} /> {linkedCenter} ✕
+                <div 
+                  className="editor-context-chip" 
+                  onClick={() => setLinkedCenter(undefined)} 
+                  style={{ marginTop: '8px', background: 'var(--blue-light)', color: 'var(--blue)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', border: '1px solid rgba(0,122,255,0.2)' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+                    <MapPin size={16} /> Vinculado a: {linkedCenter}
+                  </div>
+                  <span style={{ fontSize: '18px' }}>✕</span>
                 </div>
               ) : (
-                <div className="editor-context-chip" style={{background: 'transparent', color: '#8E8E93', padding: '0', pointerEvents: 'none'}}>
-                  📍 Charallave, Miranda (Solo ciudad)
+                <div 
+                  className="editor-context-chip" 
+                  onClick={() => setShowCenterSearch(true)} 
+                  style={{ marginTop: '8px', background: '#f8fafc', color: 'var(--blue)', cursor: 'pointer', border: '1px dashed var(--blue)', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', fontWeight: '500' }}
+                >
+                  <MapPin size={16} /> Toca aquí para etiquetar un centro de acopio
                 </div>
               )}
             </div>
@@ -197,20 +208,6 @@ export const ReportEditor = ({ isOpen, onClose, onSubmit, contextLocation, locat
 
         <div className="editor-toolbar">
           <div className="editor-tools-left">
-            <button 
-              className={`editor-tool-btn ${showCenterSearch || linkedCenter ? 'active' : ''}`} 
-              title="Vincular Centro de Acopio" 
-              onClick={() => {
-                if (linkedCenter) {
-                  setLinkedCenter(undefined);
-                } else {
-                  setShowCenterSearch(!showCenterSearch);
-                }
-              }}
-              style={{ background: showCenterSearch || linkedCenter ? '#eff6ff' : 'transparent' }}
-            >
-              <MapPin size={20} />
-            </button>
             <button className="editor-tool-btn" title="Adjuntar Imagen" onClick={() => fileInputRef.current?.click()}>
               <ImageIcon size={20} />
             </button>
