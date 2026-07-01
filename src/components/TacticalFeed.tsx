@@ -43,6 +43,10 @@ export const TacticalFeed = memo(({
   const [viewerPost, setViewerPost] = useState<TacticalPost | null>(null);
   const [optionsPostId, setOptionsPostId] = useState<string | null>(null);
   
+  const [supportedPosts, setSupportedPosts] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('tactical_supported') || '{}'); } catch { return {}; }
+  });
+
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -393,17 +397,19 @@ export const TacticalFeed = memo(({
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <button 
                     className="action-btn-subtle"
+                    style={{ color: supportedPosts[post.id] ? 'var(--blue)' : 'inherit', fontWeight: supportedPosts[post.id] ? '600' : '500' }}
                     onClick={() => {
                       if (!authUser) {
                         onRequestLogin?.();
                         return;
                       }
-                      const supported = JSON.parse(localStorage.getItem('tactical_supported') || '{}');
-                      if (supported[post.id]) return; // Already supported locally
+                      if (supportedPosts[post.id]) return; // Already supported locally
                       
-                      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, supports_count: p.supports_count + 1 } : p));
-                      supported[post.id] = true;
-                      localStorage.setItem('tactical_supported', JSON.stringify(supported));
+                      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, supports_count: (p.supports_count || 0) + 1 } : p));
+                      
+                      const newSupported = { ...supportedPosts, [post.id]: true };
+                      setSupportedPosts(newSupported);
+                      localStorage.setItem('tactical_supported', JSON.stringify(newSupported));
                       
                       // Enviar a Supabase para que sea permanente
                       if (supabase) {
