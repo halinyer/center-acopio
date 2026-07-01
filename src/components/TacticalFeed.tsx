@@ -133,9 +133,19 @@ export const TacticalFeed = memo(({
       }
     };
 
+    const handleNewLocalPost = (e: Event) => {
+      const customEvent = e as CustomEvent<TacticalPost>;
+      if (customEvent.detail) {
+        // Enforce immediate UI injection at the top (Friction Zero)
+        setPosts(prev => [customEvent.detail, ...prev]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
     loadOutbox();
     window.addEventListener('online', syncOutbox);
     window.addEventListener('tactical_outbox_updated', loadOutbox);
+    window.addEventListener('new_tactical_post', handleNewLocalPost);
 
     const unsubscribe = subscribeToTacticalFeed((newPost) => {
       // 1. Anti-Eco Reforzado: ignorar posts propios (por ID o por Nombre como fallback)
@@ -159,6 +169,7 @@ export const TacticalFeed = memo(({
       unsubscribe();
       window.removeEventListener('online', syncOutbox);
       window.removeEventListener('tactical_outbox_updated', loadOutbox);
+      window.removeEventListener('new_tactical_post', handleNewLocalPost);
     };
   }, [lat, lng]);
 
@@ -210,12 +221,18 @@ export const TacticalFeed = memo(({
   };
 
   const handleHelpCenter = (post: TacticalPost) => {
+    if (post.contact_phone) {
+      const msg = `Hola, vi tu reporte urgente en AcopioVen sobre la zona de ${post.zone || 'tu comunidad'}. ¡Quiero ayudar!`;
+      window.location.href = formatWaLink(post.contact_phone, msg);
+      return;
+    }
+
     const center = locations?.find(l => l.id === post.linked_center_id);
     if (center && center.leader_phone) {
       const msg = `Hola, vi en AcopioVen que necesitan apoyo en ${center.name}. ¡Quiero ayudar!`;
       window.location.href = formatWaLink(center.leader_phone, msg);
     } else {
-      alert('Este centro no tiene un número de contacto registrado.');
+      alert('Este reporte o centro no tiene un número de contacto registrado.');
     }
   };
 
@@ -231,8 +248,9 @@ export const TacticalFeed = memo(({
   }
 
   const displayedPosts = filter === 'alertas' ? posts.filter(p => p.is_critical) : posts;
+  const visibleQueue = filter === 'alertas' ? newPostsQueue.filter(p => p.is_critical) : newPostsQueue;
 
-  if (displayedPosts.length === 0 && newPostsQueue.length === 0) {
+  if (displayedPosts.length === 0 && visibleQueue.length === 0) {
     return <div className="tactical-feed-container" style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>No hay reportes recientes en tu zona.</div>;
   }
 
@@ -240,26 +258,15 @@ export const TacticalFeed = memo(({
     <div className="tactical-feed-container" onScroll={handleScroll} style={{ position: 'relative' }}>
       
       {/* Píldora de Realtime (Protocolo Burbuja) */}
-      {newPostsQueue.length > 0 && (
+      {visibleQueue.length > 0 && (
         <div style={{ position: 'sticky', top: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <button 
             onClick={() => {
               setPosts(prev => {
                 const combined = [...newPostsQueue, ...prev];
-                // Inyección Matemática: Reordenar respetando el Cursor SQL
-                combined.sort((a, b) => {
-                  const scoreA = a.relevance_score ?? 1;
-                  const scoreB = b.relevance_score ?? 1;
-                  if (scoreA !== scoreB) return scoreB - scoreA;
-                  
-                  const timeA = new Date(a.created_at).getTime();
-                  const timeB = new Date(b.created_at).getTime();
-                  if (timeA !== timeB) return timeB - timeA;
-                  
-                  return a.id.localeCompare(b.id);
-                });
+                // Fricción Cero: Ordenamiento 100% cronológico, sin enterrar posts por score.
                 
-                // Evitar duplicados (O(n))
+                // Evitar duplicados
                 const uniqueIds = new Set();
                 return combined.filter(p => {
                   if (uniqueIds.has(p.id)) return false;
@@ -276,7 +283,7 @@ export const TacticalFeed = memo(({
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
             }}
           >
-            ↑ {newPostsQueue.length} Nuevo{newPostsQueue.length > 1 ? 's' : ''} Reporte{newPostsQueue.length > 1 ? 's' : ''}
+            ↑ {visibleQueue.length} Nuevo{visibleQueue.length > 1 ? 's' : ''} Reporte{visibleQueue.length > 1 ? 's' : ''}
           </button>
         </div>
       )}
@@ -403,6 +410,14 @@ export const TacticalFeed = memo(({
                         supabase.rpc('increment_support', { p_post_id: post.id }).then(({ error }) => {
                           if (error) console.error(error);
                         });
+                        if (authUser && post.user_id && post.user_id !== authUser.id) {
+                          supabase.from('tactical_notifications').insert([{
+                            user_id: post.user_id,
+                            actor_name: authUser.user_metadata?.full_name || 'Un voluntario',
+                            post_id: post.id,
+                            type: 'support'
+                          }]).then();
+                        }
                       }
                     }}
                   >

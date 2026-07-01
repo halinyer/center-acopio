@@ -276,6 +276,42 @@ function App() {
     }
   });
 
+  // Fetch and subscribe to real notifications from Supabase
+  useEffect(() => {
+    if (!authUser || !supabase) return;
+
+    const fetchNotifs = async () => {
+      const { data } = await supabase.from('tactical_notifications').select('*').eq('user_id', authUser.id).order('created_at', { ascending: false }).limit(20);
+      if (data) {
+        setNotificationsHistory(prev => {
+          const combined = [...prev];
+          data.forEach((n: any) => {
+            const title = n.type === 'support' ? '🤝 Apoyo a tu reporte' : 'Alerta';
+            const desc = n.type === 'support' ? `${n.actor_name} respaldó tu reporte.` : 'Nueva notificación';
+            if (!combined.find(c => c.id === n.id)) {
+              combined.unshift({ id: n.id, title, desc, time: n.created_at, read: n.is_read });
+            }
+          });
+          return combined.sort((a,b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 50);
+        });
+      }
+    };
+
+    fetchNotifs();
+
+    const channel = supabase.channel('realtime_notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tactical_notifications', filter: `user_id=eq.${authUser.id}` }, payload => {
+        const n = payload.new;
+        const title = n.type === 'support' ? '🤝 Apoyo a tu reporte' : 'Alerta';
+        const desc = n.type === 'support' ? `${n.actor_name} respaldó tu reporte.` : 'Nueva notificación';
+        setNotificationsHistory(prev => [{ id: n.id, title, desc, time: n.created_at, read: false }, ...prev].slice(0, 50));
+        showToast(title, desc, 'info');
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [authUser]);
+
   const [ignoredLocs, setIgnoredLocs] = useState<Record<string, number>>(() => {
     try {
       const saved = localStorage.getItem('ignored_locs');
@@ -1014,7 +1050,10 @@ function App() {
               zone: await reverseGeocode(userPos?.lat || 10.4806, userPos?.lng || -66.9036)
             };
           
-          await publishTacticalReport(post);
+          const success = await publishTacticalReport(post);
+          if (success) {
+            window.dispatchEvent(new CustomEvent('new_tactical_post', { detail: post }));
+          }
         }}
       />
 
