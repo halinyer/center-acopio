@@ -1515,6 +1515,18 @@ function App() {
               <button className={`notif-tag ${notifFilter === 'Rescate' ? 'active' : ''}`} onClick={() => setNotifFilter('Rescate')}>🚨 Rescate</button>
               <button className={`notif-tag ${notifFilter === 'Nuevos' ? 'active' : ''}`} onClick={() => setNotifFilter('Nuevos')}>📍 Nuevos</button>
             </div>
+            
+            <div style={{ padding: '0 16px 12px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => {
+                  setNotificationsHistory(prev => prev.filter(n => n.title.includes('Alerta') || n.title.includes('Campana')));
+                  if (supabase && authUser) supabase.from('tactical_notifications').delete().eq('user_id', authUser.id).eq('type', 'support').then();
+                }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--red)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+              >
+                Limpiar Leídos
+              </button>
+            </div>
 
             <div style={{overflowY: 'auto', flex: 1}}>
               {(() => {
