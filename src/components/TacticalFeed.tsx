@@ -20,7 +20,7 @@ interface TacticalFeedProps {
   onClearCenterFilter?: () => void;
   userLat?: number;
   userLng?: number;
-  locations?: {id:string, name:string, lat:number, lng:number}[];
+  locations?: LocationRow[];
   authUser?: any;
   onNotify?: (title: string, desc: string, locId?: string) => void;
   onRequestLogin?: () => void;
