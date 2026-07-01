@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { MapPin, Check, MoreHorizontal, Share, MessageCircle, Trash2 } from 'lucide-react';
-import { getTacticalFeed, subscribeToTacticalFeed, supabase, getDistanceKm, deleteTacticalReport } from '../lib/supabase';
+import { getTacticalFeed, getTacticalFeedByCenter, subscribeToTacticalFeed, supabase, getDistanceKm, deleteTacticalReport } from '../lib/supabase';
 import type { TacticalPost, LocationRow } from '../lib/supabase';
 
 function timeAgo(dateString: string): string {
@@ -55,6 +55,10 @@ export const TacticalFeed = memo(({
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
+  // Estados aislados para el Puente Filtrado
+  const [centerPosts, setCenterPosts] = useState<TacticalPost[] | null>(null);
+  const [centerLoading, setCenterLoading] = useState(false);
+
   // Coordenadas reales del usuario
   const lat = userLat ?? 10.4806;
   const lng = userLng ?? -66.9036;
@@ -86,15 +90,15 @@ export const TacticalFeed = memo(({
   };
 
   const lastPostElementRef = useCallback((node: HTMLDivElement) => {
-    if (loading || loadingMore || !hasMore) return;
+    if (loading || loadingMore || !hasMore || centerFilter) return; // Desactivar scroll infinito local en vista filtrada
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) {
         setLoadingMore(true);
       }
-    }, { rootMargin: '400px' }); // Gatillar cuando falten 3-4 tarjetas
+    }, { rootMargin: '400px' });
     if (node) observer.current.observe(node);
-  }, [loading, loadingMore, hasMore]);
+  }, [loading, loadingMore, hasMore, centerFilter]);
 
   // Initial Fetch & Realtime Subscription
   useEffect(() => {
@@ -181,6 +185,19 @@ export const TacticalFeed = memo(({
     };
   }, [lat, lng]);
 
+  // Center Feed Effect
+  useEffect(() => {
+    if (centerFilter) {
+      setCenterLoading(true);
+      getTacticalFeedByCenter(centerFilter).then(data => {
+        setCenterPosts(data);
+        setCenterLoading(false);
+      });
+    } else {
+      setCenterPosts(null);
+    }
+  }, [centerFilter]);
+
   // Load More Effect
   useEffect(() => {
     if (loadingMore) {
@@ -251,17 +268,20 @@ export const TacticalFeed = memo(({
     }
   };
 
-  const displayedPosts = posts.filter(p => {
-    if (centerFilter && p.linked_center_id !== centerFilter) return false;
-    if (filter === 'alertas' && !p.is_critical) return false;
-    return true;
-  });
+  let displayedPosts: TacticalPost[] = [];
+  if (centerFilter) {
+    displayedPosts = (centerPosts || []).filter(p => filter === 'alertas' ? p.is_critical : true);
+  } else {
+    displayedPosts = posts.filter(p => filter === 'alertas' ? p.is_critical : true);
+  }
 
-  if (loading && posts.length === 0) {
+  const isActuallyLoading = centerFilter ? centerLoading : loading;
+
+  if (isActuallyLoading && displayedPosts.length === 0) {
     return (
       <div className="tactical-feed">
         <div style={{ padding: '24px', textAlign: 'center', color: 'var(--gray-500)', fontSize: '14px' }}>
-          Sincronizando red táctica...
+          {centerFilter ? 'Buscando reportes del centro...' : 'Sincronizando red táctica...'}
         </div>
       </div>
     );

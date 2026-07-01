@@ -268,6 +268,25 @@ export async function getTacticalFeed(
   return data || [];
 }
 
+export async function getTacticalFeedByCenter(centerId: string, limit: number = 50): Promise<TacticalPost[]> {
+  if (isDemoMode || !supabase) {
+    return DEMO_POSTS.filter(p => p.linked_center_id === centerId).slice(0, limit);
+  }
+
+  const { data, error } = await supabase
+    .from('tactical_feed')
+    .select('*')
+    .eq('linked_center_id', centerId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching center tactical feed:', error);
+    return [];
+  }
+  return data || [];
+}
+
 export function subscribeToTacticalFeed(
   onNewPost: (post: TacticalPost) => void
 ) {
