@@ -420,6 +420,7 @@ export const TacticalFeed = memo(({
                           supabase.from('tactical_notifications').insert([{
                             user_id: post.user_id,
                             actor_name: authUser.user_metadata?.full_name || 'Un voluntario',
+                            actor_avatar: authUser.user_metadata?.avatar_url || '',
                             post_id: post.id,
                             type: 'support'
                           }]).then();

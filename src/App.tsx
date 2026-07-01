@@ -1530,15 +1530,25 @@ function App() {
 
             <div style={{overflowY: 'auto', flex: 1}}>
               {(() => {
+                const timeAgo = (dateStr: string) => {
+                  const diff = Date.now() - new Date(dateStr).getTime();
+                  const minutes = Math.floor(diff / 60000);
+                  if (minutes < 1) return 'Hace un momento';
+                  if (minutes < 60) return `Hace ${minutes} m`;
+                  const hours = Math.floor(minutes / 60);
+                  if (hours < 24) return `Hace ${hours} h`;
+                  return `Hace ${Math.floor(hours / 24)} d`;
+                };
+
                 const nearestAllTime = sortedByDist && sortedByDist.length > 0 ? sortedByDist[0] : null;
                 const nearestDist = nearestAllTime && userPos ? getDistanceKm(userPos.lat, userPos.lng, nearestAllTime.lat, nearestAllTime.lng) : null;
                 const showPinnedNearest = notifFilter === 'Todos' && nearestAllTime && nearestDist !== null && nearestDist < 15;
 
                 const filteredNotifs = notificationsHistory.filter(n => {
                   if (notifFilter === 'Todos') return true;
-                  if (notifFilter === 'Médico') return n.title.includes('Médico');
-                  if (notifFilter === 'Rescate') return n.title.includes('Rescatista') || n.title.includes('Rescate');
-                  if (notifFilter === 'Nuevos') return n.title.includes('Nuevo');
+                  if (notifFilter === 'Médico') return n.title.includes('Médico') || n.title.includes('Alerta');
+                  if (notifFilter === 'Rescate') return n.title.includes('Rescatista') || n.title.includes('Rescate') || n.title.includes('Alerta');
+                  if (notifFilter === 'Nuevos') return n.title.includes('Nuevo') || n.title.includes('respaldo');
                   return true;
                 });
                 return (
@@ -1566,27 +1576,36 @@ function App() {
                         No tienes notificaciones recientes.
                       </div>
                     ) : (
-                      filteredNotifs.map(n => (
-                        <div 
-                          key={n.id} 
-                          className={`notification-item ${!n.read ? 'unread' : ''}`}
-                          onClick={() => {
-                            if(n.locId) {
-                              const loc = acopios.find(a => a.id === n.locId);
-                              if(loc) openDetails(loc);
-                            }
-                            setShowNotifications(false);
-                            markAllAsRead();
-                          }}
-                        >
-                          <div className="notification-icon"><Bell size={16} /></div>
-                          <div className="notification-text">
-                            <strong>{n.title}</strong>
-                            <p>{n.desc}</p>
-                            <span>{n.time}</span>
+                      filteredNotifs.map(n => {
+                        const isSupport = n.title.includes('respaldo') || n.title.includes('Apoyo');
+                        return (
+                          <div 
+                            key={n.id} 
+                            className={`notification-item ${!n.read ? 'unread' : ''}`}
+                            onClick={() => {
+                              if(n.locId) {
+                                const loc = acopios.find(a => a.id === n.locId);
+                                if(loc) openDetails(loc);
+                              }
+                              setShowNotifications(false);
+                              markAllAsRead();
+                            }}
+                          >
+                            {n.avatar ? (
+                              <img src={n.avatar} alt="avatar" style={{width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0}} />
+                            ) : (
+                              <div className="notification-icon" style={{background: isSupport ? 'var(--blue-light)' : 'var(--red-light)', color: isSupport ? 'var(--blue)' : 'var(--red)'}}>
+                                <Bell size={16} />
+                              </div>
+                            )}
+                            <div className="notification-text">
+                              <strong>{n.title}</strong>
+                              <p>{n.desc}</p>
+                              <span>{timeAgo(n.time)}</span>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </>
                 );
