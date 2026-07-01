@@ -1394,25 +1394,45 @@ function App() {
               </h2>
             </div>
             <div className="chooser-body" style={{ padding: '16px', textAlign: 'center' }}>
-              <p style={{ color: 'var(--gray-600)', marginBottom: '24px', fontSize: '15px' }}>
-                ¿Deseas enviar un WhatsApp rápido a <strong>{whatsappPromptData.leader || 'esta persona'}</strong> ({whatsappPromptData.phone}) para avisarle que su centro ya está visible y agradecerle?
+              <p style={{ color: 'var(--gray-600)', marginBottom: '24px', fontSize: '15px', lineHeight: '1.5' }}>
+                ¿Deseas enviar los datos de este centro a nuestra <strong>Central de AcopioVen</strong> para que le escribamos oficialmente a <strong>{whatsappPromptData.leader || 'la persona'}</strong> ({whatsappPromptData.phone})?
               </p>
               
               <button 
                 className="btn-primary" 
-                style={{ width: '100%', background: '#25D366', marginBottom: '12px' }}
+                style={{ 
+                  width: '100%', 
+                  background: '#25D366', 
+                  marginBottom: '16px',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '10px',
+                  boxShadow: '0 4px 14px rgba(37, 211, 102, 0.4)',
+                  color: '#fff',
+                  border: 'none'
+                }}
                 onClick={() => {
-                  const msg = `¡Hola ${whatsappPromptData.leader || ''}! Hemos registrado tu centro de acopio "${whatsappPromptData.centerName}" en AcopioVen 🇻🇪. ¡Gracias por tu valioso apoyo! Estaremos difundiendo en redes para ayudar a canalizar voluntarios y donaciones hacia allá. Cuenta con nosotros.`;
-                  window.open(formatWaLink(whatsappPromptData.phone, msg), '_blank');
+                  const centralPhone = '584241930273';
+                  const msgToCentral = `Hola Central 🚨. Acabo de registrar el centro "${whatsappPromptData.centerName}".\n\nPor favor envíenle este mensaje de agradecimiento al líder:\n\n*Número:* ${whatsappPromptData.phone}\n*Mensaje:*\n¡Hola ${whatsappPromptData.leader || ''}! Hemos registrado tu centro de acopio "${whatsappPromptData.centerName}" en AcopioVen 🇻🇪. ¡Gracias por tu apoyo! Estaremos difundiendo en redes para enviar ayuda. Cuenta con nosotros.`;
+                  window.open(formatWaLink(centralPhone, msgToCentral), '_blank');
                   setWhatsappPromptData(null);
                 }}
               >
-                <MessageCircle size={18} /> Enviar WhatsApp Automático
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.498 14.382c-.301-.15-1.767-.867-2.04-.966-.273-.101-.473-.15-.673.15-.197.295-.771.964-.944 1.162-.175.195-.349.21-.646.075-.3-.15-1.263-.465-2.403-1.485-.888-.795-1.484-1.77-1.66-2.07-.174-.3-.019-.465.13-.615.136-.135.301-.345.451-.525.146-.18.194-.3.297-.495.1-.21.049-.375-.025-.525-.075-.15-.672-1.62-.922-2.205-.24-.585-.477-.51-.673-.51-.176-.015-.371-.015-.571-.015-.195 0-.525.075-.795.375-.27.3-1.02 1.005-1.02 2.445s1.05 2.82 1.196 3.015c.15.195 2.057 3.135 4.965 4.395 2.91 1.26 2.91.84 3.435.795.525-.045 1.767-.72 2.012-1.425.245-.705.245-1.305.176-1.425-.075-.135-.27-.21-.57-.36z"/>
+                  <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.46 0 .104 5.333.104 11.91c0 2.115.553 4.185 1.604 6L0 24l6.33-1.65c1.74.96 3.705 1.47 5.715 1.47h.005c6.585 0 11.94-5.32 11.94-11.91 0-3.18-1.23-6.18-3.47-8.461zm-8.475 18.42h-.005c-1.785 0-3.54-.48-5.07-1.38l-.36-.21-3.765.99.99-3.675-.24-.375c-1.02-1.59-1.545-3.42-1.545-5.34C2.05 5.92 6.945 1.025 12.045 1.025c2.475 0 4.8.96 6.555 2.715 1.74 1.755 2.7 4.095 2.7 6.57 0 5.985-4.895 10.88-10.88 10.88z"/>
+                </svg>
+                Notificar a la Central
               </button>
               
               <button 
                 className="btn-secondary" 
-                style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--gray-500)' }}
+                style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--gray-500)', padding: '12px', fontSize: '15px' }}
                 onClick={() => setWhatsappPromptData(null)}
               >
                 No por ahora
