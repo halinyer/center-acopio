@@ -253,7 +253,7 @@ function App() {
   const [activeToast, setActiveToast] = useState<{title: string, desc: string, id: number, locId?: string} | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifFilter, setNotifFilter] = useState('Todos');
-  const [notificationsHistory, setNotificationsHistory] = useState<{id: number, title: string, desc: string, time: string, locId?: string, read: boolean}[]>(() => {
+  const [notificationsHistory, setNotificationsHistory] = useState<{id: number | string, title: string, desc: string, time: string, locId?: string, read: boolean, avatar?: string}[]>(() => {
     try {
       const cached = localStorage.getItem('notif_history');
       if (cached) {
