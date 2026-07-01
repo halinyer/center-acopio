@@ -108,6 +108,7 @@ function App() {
   const [acopios, setAcopios] = useState<LocationRow[]>([]);
   const [viewMode, setViewMode] = useState<'mapa' | 'reportes'>('mapa');
   const [feedFilter, setFeedFilter] = useState<'todo' | 'alertas'>('todo');
+  const [centerFilter, setCenterFilter] = useState<string | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showLoginSheet, setShowLoginSheet] = useState(false);
   const [authUser, setAuthUser] = useState<any>(null);
@@ -984,6 +985,8 @@ function App() {
         <div className="tactical-feed-view">
           <TacticalFeed 
             filter={feedFilter} 
+            centerFilter={centerFilter}
+            onClearCenterFilter={() => setCenterFilter(null)}
             userLat={userPos?.lat}
             userLng={userPos?.lng}
             locations={acopios}
@@ -1253,6 +1256,19 @@ function App() {
                 }}
               >
                 <CheckCircle2 size={16} /> {mockVerifications[selectedLoc.id + '_self'] ? 'Confirmado por ti' : 'Confirmar actividad hoy'}
+              </button>
+
+              <button 
+                className="btn-ghost-verify"
+                style={{ marginTop: '8px', background: 'var(--blue-light)', color: 'var(--blue)', border: 'none' }}
+                onClick={() => {
+                  setFeedFilter('todo');
+                  setCenterFilter(selectedLoc.id);
+                  setViewMode('reportes');
+                  setSelectedLoc(null); // Close the popup
+                }}
+              >
+                <Newspaper size={16} /> Ver Noticias de este Lugar
               </button>
 
               <div className="ephemeral-feed">

@@ -14,24 +14,28 @@ function timeAgo(dateString: string): string {
   return `Hace ${Math.floor(hrs / 24)}d`;
 }
 
-type TacticalFeedProps = {
+interface TacticalFeedProps {
   filter: 'todo' | 'alertas';
+  centerFilter?: string | null;
+  onClearCenterFilter?: () => void;
   userLat?: number;
   userLng?: number;
-  onCenterClick?: (c: string) => void;
-  locations?: LocationRow[];
+  locations?: {id:string, name:string, lat:number, lng:number}[];
   authUser?: any;
+  onNotify?: (title: string, desc: string, locId?: string) => void;
   onRequestLogin?: () => void;
+  onCenterClick?: (locId: string) => void;
   onScrollDir?: (dir: 'up' | 'down') => void;
-  onNotify?: (title: string, desc: string, type?: 'info'|'warning'|'error') => void;
-};
+}
 
 export const TacticalFeed = memo(({ 
   filter,
+  centerFilter,
+  onClearCenterFilter,
   userLat,
   userLng, 
   onCenterClick, 
-  locations,
+  locations = [],
   authUser,
   onRequestLogin,
   onScrollDir,
@@ -247,20 +251,39 @@ export const TacticalFeed = memo(({
     }
   };
 
-  if (loading) {
-    return <div className="tactical-feed-container" style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>Cargando radar logístico...</div>;
+  const displayedPosts = posts.filter(p => {
+    if (centerFilter && p.linked_center_id !== centerFilter) return false;
+    if (filter === 'alertas' && !p.is_critical) return false;
+    return true;
+  });
+
+  if (loading && posts.length === 0) {
+    return (
+      <div className="tactical-feed">
+        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--gray-500)', fontSize: '14px' }}>
+          Sincronizando red táctica...
+        </div>
+      </div>
+    );
   }
 
-  const displayedPosts = filter === 'alertas' ? posts.filter(p => p.is_critical) : posts;
   const visibleQueue = filter === 'alertas' ? newPostsQueue.filter(p => p.is_critical) : newPostsQueue;
-
-  if (displayedPosts.length === 0 && visibleQueue.length === 0) {
-    return <div className="tactical-feed-container" style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>No hay reportes recientes en tu zona.</div>;
-  }
 
   return (
     <div className="tactical-feed-container" onScroll={handleScroll} style={{ position: 'relative' }}>
       
+      {centerFilter && (
+        <div style={{ padding: '12px 16px', background: 'var(--blue-light)', color: 'var(--blue)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid rgba(0,122,255,0.1)' }}>
+          <span style={{ fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={16}/> Filtrado por centro</span>
+          <button onClick={onClearCenterFilter} style={{ background: 'var(--white)', border: 'none', color: 'var(--blue)', fontWeight: 'bold', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>✕ Quitar Filtro</button>
+        </div>
+      )}
+
+      {displayedPosts.length === 0 && visibleQueue.length === 0 && (
+        <div style={{paddingTop: '2rem', textAlign: 'center', color: 'var(--gray-500)'}}>
+          {centerFilter ? 'No hay reportes recientes sobre este centro.' : 'No hay reportes recientes en tu zona.'}
+        </div>
+      )}
       {/* Píldora de Realtime (Protocolo Burbuja) */}
       {visibleQueue.length > 0 && (
         <div style={{ position: 'sticky', top: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
