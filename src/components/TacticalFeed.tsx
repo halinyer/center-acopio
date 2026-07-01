@@ -419,8 +419,8 @@ export const TacticalFeed = memo(({
                         if (authUser && post.user_id && post.user_id !== authUser.id) {
                           supabase.from('tactical_notifications').insert([{
                             user_id: post.user_id,
-                            actor_name: authUser.user_metadata?.full_name || 'Un voluntario',
-                            actor_avatar: authUser.user_metadata?.avatar_url || '',
+                            actor_name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'Un voluntario',
+                            actor_avatar: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || '',
                             post_id: post.id,
                             type: 'support'
                           }]).then();
