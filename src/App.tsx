@@ -723,8 +723,24 @@ function App() {
     
     cancelPlacing();
     setSubmitting(false);
-    if (!editingId && rowData.lat) setFlyTarget({ lat: rowData.lat, lng: rowData.lng, zoom: 15 });
+    if (!editingId && rowData.lat) {
+      setFlyTarget({ lat: rowData.lat, lng: rowData.lng, zoom: 15 });
+    }
+    
     await fetchAcopios();
+
+    // Fricción Cero: Enviar WhatsApp de agradecimiento al líder
+    if (!editingId && formPhone) {
+      setTimeout(() => {
+        const confirmWa = window.confirm(`¡Centro registrado con éxito!\n\n¿Deseas enviar un WhatsApp automático a ${formLeader || 'esta persona'} (${formPhone}) para agradecerle y avisarle que su centro ya es visible en la plataforma?`);
+        if (confirmWa) {
+          const msg = `¡Hola ${formLeader || ''}! Hemos registrado tu centro de acopio "${formName}" en AcopioVen 🇻🇪. ¡Gracias por tu valioso apoyo! Estaremos difundiendo en redes para ayudar a canalizar voluntarios y donaciones hacia allá. Cuenta con nosotros.`;
+          window.open(formatWaLink(formPhone, msg), '_blank');
+        }
+      }, 500);
+    } else if (!editingId) {
+      showToast('¡Centro Registrado!', `El centro ${formName} ya está activo en el mapa.`);
+    }
   };
 
   const startEditing = (loc: LocationRow) => {
