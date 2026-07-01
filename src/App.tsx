@@ -112,6 +112,8 @@ function App() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showLoginSheet, setShowLoginSheet] = useState(false);
   const [authUser, setAuthUser] = useState<any>(null);
+
+  const [whatsappPromptData, setWhatsappPromptData] = useState<{phone: string, leader: string, centerName: string} | null>(null);
   
   // Refs para evitar re-suscripción en WebSockets
   const userPosRef = useRef(userPos);
@@ -731,13 +733,7 @@ function App() {
 
     // Fricción Cero: Enviar WhatsApp de agradecimiento al líder
     if (!editingId && formPhone) {
-      setTimeout(() => {
-        const confirmWa = window.confirm(`¡Centro registrado con éxito!\n\n¿Deseas enviar un WhatsApp automático a ${formLeader || 'esta persona'} (${formPhone}) para agradecerle y avisarle que su centro ya es visible en la plataforma?`);
-        if (confirmWa) {
-          const msg = `¡Hola ${formLeader || ''}! Hemos registrado tu centro de acopio "${formName}" en AcopioVen 🇻🇪. ¡Gracias por tu valioso apoyo! Estaremos difundiendo en redes para ayudar a canalizar voluntarios y donaciones hacia allá. Cuenta con nosotros.`;
-          window.open(formatWaLink(formPhone, msg), '_blank');
-        }
-      }, 500);
+      setWhatsappPromptData({ phone: formPhone, leader: formLeader, centerName: formName });
     } else if (!editingId) {
       showToast('¡Centro Registrado!', `El centro ${formName} ya está activo en el mapa.`);
     }
@@ -1385,6 +1381,45 @@ function App() {
                 </div>
               </button>
             </div>
+      </SwipeableSheet>
+
+      {/* WHATSAPP NOTIFICATION MODAL */}
+      <SwipeableSheet isOpen={!!whatsappPromptData} onClose={() => setWhatsappPromptData(null)} className="whatsapp-sheet">
+        {whatsappPromptData && (
+          <>
+            <div className="list-handle" />
+            <div className="modal-header">
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={20} color="var(--green)" /> ¡Centro Registrado!
+              </h2>
+            </div>
+            <div className="chooser-body" style={{ padding: '16px', textAlign: 'center' }}>
+              <p style={{ color: 'var(--gray-600)', marginBottom: '24px', fontSize: '15px' }}>
+                ¿Deseas enviar un WhatsApp rápido a <strong>{whatsappPromptData.leader || 'esta persona'}</strong> ({whatsappPromptData.phone}) para avisarle que su centro ya está visible y agradecerle?
+              </p>
+              
+              <button 
+                className="btn-primary" 
+                style={{ width: '100%', background: '#25D366', marginBottom: '12px' }}
+                onClick={() => {
+                  const msg = `¡Hola ${whatsappPromptData.leader || ''}! Hemos registrado tu centro de acopio "${whatsappPromptData.centerName}" en AcopioVen 🇻🇪. ¡Gracias por tu valioso apoyo! Estaremos difundiendo en redes para ayudar a canalizar voluntarios y donaciones hacia allá. Cuenta con nosotros.`;
+                  window.open(formatWaLink(whatsappPromptData.phone, msg), '_blank');
+                  setWhatsappPromptData(null);
+                }}
+              >
+                <MessageCircle size={18} /> Enviar WhatsApp Automático
+              </button>
+              
+              <button 
+                className="btn-secondary" 
+                style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--gray-500)' }}
+                onClick={() => setWhatsappPromptData(null)}
+              >
+                No por ahora
+              </button>
+            </div>
+          </>
+        )}
       </SwipeableSheet>
 
       {/* ADD FORM */}
