@@ -281,7 +281,7 @@ function App() {
     if (!authUser || !supabase) return;
 
     const fetchNotifs = async () => {
-      const { data } = await supabase.from('tactical_notifications').select('*').eq('user_id', authUser.id).order('created_at', { ascending: false }).limit(20);
+      const { data } = await supabase!.from('tactical_notifications').select('*').eq('user_id', authUser.id).order('created_at', { ascending: false }).limit(20);
       if (data) {
         setNotificationsHistory(prev => {
           const combined = [...prev];
@@ -299,7 +299,7 @@ function App() {
 
     fetchNotifs();
 
-    const channel = supabase.channel('realtime_notifications')
+    const channel = supabase!.channel('realtime_notifications')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tactical_notifications', filter: `user_id=eq.${authUser.id}` }, payload => {
         const n = payload.new;
         const title = n.type === 'support' ? '🤝 Apoyo a tu reporte' : 'Alerta';
@@ -309,7 +309,7 @@ function App() {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { supabase!.removeChannel(channel); };
   }, [authUser]);
 
   const [ignoredLocs, setIgnoredLocs] = useState<Record<string, number>>(() => {
