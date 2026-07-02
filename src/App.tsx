@@ -111,6 +111,7 @@ function App() {
   const [centerFilter, setCenterFilter] = useState<string | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showLoginSheet, setShowLoginSheet] = useState(false);
+  const [showProfileSheet, setShowProfileSheet] = useState(false);
   const [authUser, setAuthUser] = useState<any>(null);
 
   const [whatsappPromptData, setWhatsappPromptData] = useState<{phone: string, leader: string, centerName: string} | null>(null);
@@ -428,7 +429,7 @@ function App() {
 
   const fetchAcopios = useCallback(async () => {
     if (isDemoMode || !supabase) { setAcopios(DEMO_ACOPIOS); return; }
-    const { data, error } = await supabase.from('locations').select('*')
+    const { data, error } = await supabase.from('locations_secure').select('*')
       .eq('is_active', true)
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
     if (error) console.error('fetchAcopios', error);
@@ -463,6 +464,23 @@ function App() {
       setMockVerifications(counts);
     }
   }, [deviceId]);
+
+  // Re-Fetch silencioso cuando el usuario inicia sesión (para reemplazar los 'LOCKED' con teléfonos reales)
+  useEffect(() => {
+    if (authUser !== null && acopios.length > 0) {
+      fetchAcopios();
+    }
+  }, [authUser, fetchAcopios]);
+
+  // Actualizar en vivo la ficha abierta si llegaron nuevos datos (ej. al loguearse y descifrar el teléfono)
+  useEffect(() => {
+    if (selectedLoc) {
+      const updated = acopios.find(a => a.id === selectedLoc.id);
+      if (updated && updated.leader_phone !== selectedLoc.leader_phone) {
+        setSelectedLoc(updated);
+      }
+    }
+  }, [acopios]);
 
   useEffect(() => {
     fetchAcopios();
@@ -839,6 +857,14 @@ function App() {
 
   return (
     <div className="app-container">
+      <div className="profile-fab" onClick={() => authUser ? setShowProfileSheet(true) : setShowLoginSheet(true)}>
+        {authUser?.user_metadata?.avatar_url ? (
+          <img src={authUser.user_metadata.avatar_url} alt="Profile" />
+        ) : (
+          <User className="default-avatar" size={20} />
+        )}
+      </div>
+
       {locating && (
         <div className="loading-overlay" style={{ padding: '32px', textAlign: 'center', background: 'var(--white)' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'pulse 1.5s infinite' }}>🇻🇪</div>
@@ -1214,15 +1240,23 @@ function App() {
                   
                   {selectedLoc.leader_phone && (
                     <div className="contact-buttons">
-                      <button className="btn-call" onClick={() => window.open(`tel:${selectedLoc.leader_phone}`)}>
-                        <Phone size={16} /> Llamar
-                      </button>
-                      <button className="btn-wa" onClick={() => {
-                        const defaultMsg = `Hola, te contacto desde *AcopioVen*. Quisiera saber si el centro *${selectedLoc.name}* está necesitando apoyo o insumos ahora mismo.`;
-                        window.open(formatWaLink(selectedLoc.leader_phone!, defaultMsg), '_blank');
-                      }}>
-                        <MessageCircle size={16} /> WhatsApp
-                      </button>
+                      {authUser ? (
+                        <>
+                          <button className="btn-call" onClick={() => window.open(`tel:${selectedLoc.leader_phone}`)}>
+                            <Phone size={16} /> Llamar
+                          </button>
+                          <button className="btn-wa" onClick={() => {
+                            const defaultMsg = `Hola, te contacto desde *AcopioVen*. Quisiera saber si el centro *${selectedLoc.name}* está necesitando apoyo o insumos ahora mismo.`;
+                            window.open(formatWaLink(selectedLoc.leader_phone!, defaultMsg), '_blank');
+                          }}>
+                            <MessageCircle size={16} /> WhatsApp
+                          </button>
+                        </>
+                      ) : (
+                        <button className="btn-lock" onClick={() => setShowLoginSheet(true)}>
+                          <Lock size={16} /> Iniciar sesión para ver contacto
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1271,7 +1305,7 @@ function App() {
                     }
                   } catch (err: any) {
                     console.error("Error validando:", err);
-                    showToast('Error', 'No se pudo guardar la validación en el servidor.', selectedLoc.id);
+                    showToast('Error', err.message || 'No se pudo guardar la validación.', selectedLoc.id);
                     // Revert optimistic update
                     setMockVerifications(prev => ({
                       ...prev, 
@@ -1773,6 +1807,22 @@ function App() {
             Continuar con Google
           </button>
           <p style={{ marginTop: '16px', fontSize: '12px', color: 'var(--gray-500)' }}>Fricción Cero. Sin contraseñas.</p>
+        </div>
+      </SwipeableSheet>
+
+      <SwipeableSheet isOpen={showProfileSheet} onClose={() => setShowProfileSheet(false)} className="profile-sheet">
+        <div className="sheet-content">
+          {authUser?.user_metadata?.avatar_url && (
+            <img src={authUser.user_metadata.avatar_url} alt="Profile" className="profile-sheet-avatar" />
+          )}
+          <h2 className="profile-sheet-name">{authUser?.user_metadata?.full_name || 'Voluntario'}</h2>
+          <p className="profile-sheet-email">{authUser?.email}</p>
+          <button className="btn-logout" onClick={() => {
+            signOut();
+            setShowProfileSheet(false);
+          }}>
+            <LogOut size={18} /> Cerrar Sesión
+          </button>
         </div>
       </SwipeableSheet>
 
