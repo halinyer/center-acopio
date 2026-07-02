@@ -131,10 +131,12 @@ function App() {
     
     const handleIntent = () => {
       const intent = localStorage.getItem('tactical_login_intent');
+      if (intent) {
+        localStorage.removeItem('tactical_login_intent');
+      }
       if (intent === 'report') {
         setShowReportModal(true);
         setViewMode('reportes');
-        localStorage.removeItem('tactical_login_intent');
       }
     };
 
@@ -857,11 +859,25 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="profile-fab" onClick={() => authUser ? setShowProfileSheet(true) : setShowLoginSheet(true)}>
-        {authUser?.user_metadata?.avatar_url ? (
-          <img src={authUser.user_metadata.avatar_url} alt="Profile" />
-        ) : (
-          <User className="default-avatar" size={20} />
+      <div className="profile-container" style={{ position: 'absolute', top: '70px', right: '16px', zIndex: 1000 }}>
+        <div className="profile-fab" onClick={() => authUser ? setShowProfileSheet(!showProfileSheet) : setShowLoginSheet(true)}>
+          {authUser?.user_metadata?.avatar_url ? (
+            <img src={authUser.user_metadata.avatar_url} alt="Profile" />
+          ) : (
+            <User className="default-avatar" size={20} />
+          )}
+        </div>
+        
+        {showProfileSheet && authUser && (
+          <div className="profile-dropdown">
+             <div className="profile-dropdown-header">
+               <strong>{authUser.user_metadata?.full_name || 'Voluntario'}</strong>
+               <span>{authUser.email}</span>
+             </div>
+             <button className="profile-dropdown-item logout" onClick={() => { supabase?.auth.signOut(); setShowProfileSheet(false); }}>
+               <LogOut size={16} /> Cerrar Sesión
+             </button>
+          </div>
         )}
       </div>
 
@@ -1253,7 +1269,10 @@ function App() {
                           </button>
                         </>
                       ) : (
-                        <button className="btn-lock" onClick={() => setShowLoginSheet(true)}>
+                        <button className="btn-lock" onClick={() => {
+                          localStorage.setItem('tactical_login_intent', 'contact');
+                          setShowLoginSheet(true);
+                        }}>
                           <Lock size={16} /> Iniciar sesión para ver contacto
                         </button>
                       )}
@@ -1807,22 +1826,6 @@ function App() {
             Continuar con Google
           </button>
           <p style={{ marginTop: '16px', fontSize: '12px', color: 'var(--gray-500)' }}>Fricción Cero. Sin contraseñas.</p>
-        </div>
-      </SwipeableSheet>
-
-      <SwipeableSheet isOpen={showProfileSheet} onClose={() => setShowProfileSheet(false)} className="profile-sheet">
-        <div className="sheet-content">
-          {authUser?.user_metadata?.avatar_url && (
-            <img src={authUser.user_metadata.avatar_url} alt="Profile" className="profile-sheet-avatar" />
-          )}
-          <h2 className="profile-sheet-name">{authUser?.user_metadata?.full_name || 'Voluntario'}</h2>
-          <p className="profile-sheet-email">{authUser?.email}</p>
-          <button className="btn-logout" onClick={() => {
-            supabase?.auth.signOut();
-            setShowProfileSheet(false);
-          }}>
-            <LogOut size={18} /> Cerrar Sesión
-          </button>
         </div>
       </SwipeableSheet>
 
