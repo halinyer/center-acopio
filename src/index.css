@@ -699,24 +699,25 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; font-family: va
   color: var(--gray-400); font-weight: 700; margin-bottom: 8px;
 }
 .ephemeral-item {
-  display: flex; gap: 10px; align-items: flex-start;
-  padding: 10px 0;
-  font-size: 13.5px; color: var(--gray-700);
-  line-height: 1.5;
-  border-bottom: 1px solid rgba(0,0,0,0.03);
+  padding: 12px; background: white; border-radius: 12px;
+  border: 1px solid var(--gray-200); box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
-.ephemeral-item:last-child {
-  border-bottom: none;
+.ephemeral-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
 }
-.ephemeral-role {
-  font-size: 10px; font-weight: 700; 
-  padding: 2px 6px; border-radius: 4px;
-  background: var(--gray-100); color: var(--gray-600);
-  flex-shrink: 0; margin-top: 2px;
+.ephemeral-avatar {
+  width: 28px; height: 28px; border-radius: 14px; object-fit: cover;
 }
-.ephemeral-time {
-  color: var(--gray-400); font-size: 11px;
+.ephemeral-avatar.placeholder {
+  background: var(--gray-200); display: flex; align-items: center; justify-content: center; color: var(--gray-500);
 }
+.ephemeral-name { font-weight: 700; font-size: 13.5px; color: var(--gray-900); margin-right: 6px; }
+.ephemeral-role { 
+  display: inline-block; padding: 2px 6px; background: var(--gray-900); color: white;
+  border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+}
+.ephemeral-time { font-size: 12px; color: var(--gray-500); margin-left: auto; }
+.ephemeral-text { font-size: 14px; color: var(--gray-700); line-height: 1.4; padding-left: 38px; }
 
 /* INPUT EFÃMERO (REVELACIÃ“N PROGRESIVA) */
 .ephemeral-input-wrapper {

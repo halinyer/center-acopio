@@ -249,7 +249,7 @@ function App() {
   const [ephemeralText, setEphemeralText] = useState('');
   const [ephemeralRole, setEphemeralRole] = useState('Civil');
   
-  const [mockNotes, setMockNotes] = useState<{role: string, text: string, time: string, locId: string}[]>([
+  const [mockNotes, setMockNotes] = useState<{role: string, text: string, time: string, locId: string, user_name?: string, user_avatar?: string}[]>([
     { role: 'Civil', text: 'La vía por la principal está despejada, entregué agua hace un rato.', time: 'Hace 2h', locId: 'all' },
     { role: 'Médico', text: 'Ya no traigan más suero, necesitamos son gasas y alcohol urgentemente.', time: 'Hace 5h', locId: 'all' }
   ]);
@@ -435,7 +435,17 @@ function App() {
       .eq('is_active', true)
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
     if (error) console.error('fetchAcopios', error);
-    else setAcopios(data || []);
+    else {
+      setAcopios(data || []);
+      const returnLoc = localStorage.getItem('tactical_return_loc');
+      if (returnLoc && data) {
+        const center = data.find(a => a.id === returnLoc);
+        if (center) {
+          setSelectedLoc(center);
+          localStorage.removeItem('tactical_return_loc');
+        }
+      }
+    }
   }, []);
 
   const fetchSocialData = useCallback(async () => {
@@ -449,7 +459,9 @@ function App() {
         role: n.role,
         text: n.content,
         time: new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        locId: n.location_id
+        locId: n.location_id,
+        user_name: n.user_name,
+        user_avatar: n.user_avatar
       })));
     }
 
@@ -859,28 +871,6 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="profile-container" style={{ position: 'absolute', top: '70px', right: '16px', zIndex: 1000 }}>
-        <div className="profile-fab" onClick={() => authUser ? setShowProfileSheet(!showProfileSheet) : setShowLoginSheet(true)}>
-          {authUser?.user_metadata?.avatar_url ? (
-            <img src={authUser.user_metadata.avatar_url} alt="Profile" />
-          ) : (
-            <User className="default-avatar" size={20} />
-          )}
-        </div>
-        
-        {showProfileSheet && authUser && (
-          <div className="profile-dropdown">
-             <div className="profile-dropdown-header">
-               <strong>{authUser.user_metadata?.full_name || 'Voluntario'}</strong>
-               <span>{authUser.email}</span>
-             </div>
-             <button className="profile-dropdown-item logout" onClick={() => { supabase?.auth.signOut(); setShowProfileSheet(false); }}>
-               <LogOut size={16} /> Cerrar Sesión
-             </button>
-          </div>
-        )}
-      </div>
-
       {locating && (
         <div className="loading-overlay" style={{ padding: '32px', textAlign: 'center', background: 'var(--white)' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'pulse 1.5s infinite' }}>🇻🇪</div>
@@ -1001,16 +991,31 @@ function App() {
             </button>
           </div>
 
-          <div className="top-actions">
-              {authUser && viewMode === 'reportes' && (
-                <button 
-                  className="btn-circle" 
-                  onClick={handleLogout} 
-                  title="Cerrar sesión"
-                >
-                  <LogOut size={18} />
-                </button>
-              )}
+          <div className="top-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}>
+              <div className="profile-container">
+                <div className="profile-fab" style={{ position: 'relative', top: 'auto', right: 'auto', width: '36px', height: '36px', border: 'none', background: 'transparent', boxShadow: 'none' }} onClick={() => authUser ? setShowProfileSheet(!showProfileSheet) : setShowLoginSheet(true)}>
+                  {authUser?.user_metadata?.avatar_url ? (
+                    <img src={authUser.user_metadata.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--gray-200)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <User className="default-avatar" size={18} />
+                    </div>
+                  )}
+                </div>
+                
+                {showProfileSheet && authUser && (
+                  <div className="profile-dropdown" style={{ top: '44px' }}>
+                     <div className="profile-dropdown-header">
+                       <strong>{authUser.user_metadata?.full_name || 'Voluntario'}</strong>
+                       <span>{authUser.email}</span>
+                     </div>
+                     <button className="profile-dropdown-item logout" onClick={() => { supabase?.auth.signOut(); setShowProfileSheet(false); }}>
+                       <LogOut size={16} /> Cerrar Sesión
+                     </button>
+                  </div>
+                )}
+              </div>
+
               <button 
                 className="btn-circle" 
                 style={{position: 'relative'}} 
@@ -1354,63 +1359,85 @@ function App() {
                 <div className="ephemeral-feed-title">Notas Recientes (24h)</div>
 
                 {/* PROGRESIVE DISCLOSURE INPUT */}
-                <div className="ephemeral-input-wrapper">
-                  <input 
-                    type="text" 
-                    className="ephemeral-input-pill" 
-                    placeholder="Agregar reporte rápido..." 
-                    maxLength={60}
-                    value={ephemeralText}
-                    onChange={(e) => setEphemeralText(e.target.value)}
-                    onFocus={() => setIsTyping(true)}
-                  />
-                  <button 
-                    className="ephemeral-send-btn" 
-                    disabled={ephemeralText.trim().length === 0}
-                    onClick={async () => {
-                      const textToSend = ephemeralText;
-                      const roleToSend = ephemeralRole;
-                      
-                      recentSentNotes.current.add(textToSend);
+                {authUser ? (
+                  <div className="ephemeral-input-wrapper">
+                    <input 
+                      type="text" 
+                      className="ephemeral-input-pill" 
+                      placeholder="Agregar reporte rápido..." 
+                      maxLength={60}
+                      value={ephemeralText}
+                      onChange={(e) => setEphemeralText(e.target.value)}
+                      onFocus={() => setIsTyping(true)}
+                    />
+                    <button 
+                      className="ephemeral-send-btn" 
+                      disabled={ephemeralText.trim().length === 0}
+                      onClick={async () => {
+                        const textToSend = ephemeralText;
+                        const roleToSend = ephemeralRole;
+                        const userName = authUser?.user_metadata?.full_name || 'Voluntario';
+                        const userAvatar = authUser?.user_metadata?.avatar_url;
+                        
+                        recentSentNotes.current.add(textToSend);
 
-                      // Optimistic UI
-                      setMockNotes(prev => [{role: roleToSend, text: textToSend, time: 'Ahora', locId: selectedLoc.id}, ...prev]);
-                      showToast(`Reporte en ${selectedLoc.name}`, 'Tu reporte ya es visible para las personas a menos de 10km.', selectedLoc.id);
-                      setEphemeralText('');
-                      setIsTyping(false);
-                      
-                      if (!isDemoMode && supabase) {
-                        await supabase.from('ephemeral_notes').insert({
-                          location_id: selectedLoc.id,
-                          role: roleToSend,
-                          content: textToSend
-                        });
-                      }
-                    }}
-                  >
-                    <Send size={14} style={{marginLeft: '-2px'}} />
+                        // Optimistic UI
+                        setMockNotes(prev => [{role: roleToSend, text: textToSend, time: 'Ahora', locId: selectedLoc.id, user_name: userName, user_avatar: userAvatar}, ...prev]);
+                        showToast(`Reporte en ${selectedLoc.name}`, 'Tu reporte ya es visible para las personas a menos de 10km.', selectedLoc.id);
+                        setEphemeralText('');
+                        setIsTyping(false);
+                        
+                        if (!isDemoMode && supabase) {
+                          await supabase.from('ephemeral_notes').insert({
+                            location_id: selectedLoc.id,
+                            role: roleToSend,
+                            content: textToSend,
+                            user_name: userName,
+                            user_avatar: userAvatar
+                          });
+                        }
+                      }}
+                    >
+                      <Send size={14} style={{marginLeft: '-2px'}} />
+                    </button>
+                    {isTyping && (
+                      <div className="ephemeral-roles">
+                        {['Civil', 'Médico', 'Rescatista'].map(role => (
+                          <button 
+                            key={role}
+                            className={`role-chip ${ephemeralRole === role ? 'active' : ''}`}
+                            onClick={() => setEphemeralRole(role)}
+                          >
+                            {role}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button className="btn-lock" style={{width: '100%', marginBottom: '16px'}} onClick={() => {
+                    localStorage.setItem('tactical_return_loc', selectedLoc.id);
+                    setShowLoginSheet(true);
+                  }}>
+                    <Lock size={16} /> Iniciar sesión para comentar
                   </button>
-                  {isTyping && (
-                    <div className="ephemeral-roles">
-                      {['Civil', 'Médico', 'Rescatista'].map(role => (
-                        <button 
-                          key={role}
-                          className={`role-chip ${ephemeralRole === role ? 'active' : ''}`}
-                          onClick={() => setEphemeralRole(role)}
-                        >
-                          {role}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                )}
                 
                 {mockNotes.filter(n => n.locId === 'all' || n.locId === selectedLoc.id).map((note, i) => (
                   <div className="ephemeral-item" style={{marginTop: i === 0 ? '16px' : '0'}} key={i}>
-                    <span className="ephemeral-role">{note.role}</span>
-                    <div>
-                      {note.text} <span className="ephemeral-time">• {note.time}</span>
+                    <div className="ephemeral-header">
+                      {note.user_avatar ? (
+                        <img src={note.user_avatar} alt="Avatar" className="ephemeral-avatar" />
+                      ) : (
+                        <div className="ephemeral-avatar placeholder"><User size={14}/></div>
+                      )}
+                      <div>
+                        <span className="ephemeral-name">{note.user_name || 'Anónimo'}</span>
+                        <span className="ephemeral-role">{note.role}</span>
+                        <span className="ephemeral-time">• {note.time}</span>
+                      </div>
                     </div>
+                    <div className="ephemeral-text">{note.text}</div>
                   </div>
                 ))}
               </div>
