@@ -1239,7 +1239,8 @@ function App() {
 
               <button 
                 className={`btn-ghost-verify ${mockVerifications[selectedLoc.id + '_self'] ? 'verified' : ''}`}
-                onClick={async () => {
+                onClick={async (e) => {
+                  e.stopPropagation();
                   const isVerified = mockVerifications[selectedLoc.id + '_self'] === 1;
                   
                   // Optimistic UI Update
@@ -1249,21 +1250,34 @@ function App() {
                     [selectedLoc.id]: (prev[selectedLoc.id] || 0) + (isVerified ? -1 : 1)
                   }));
 
-                  if (!isVerified) {
-                    showToast('¡Validación registrada!', `Gracias por confirmar que ${selectedLoc.name} sigue activo.`, selectedLoc.id);
-                    if (!isDemoMode && supabase) {
-                      await supabase.from('validations').insert({
-                        location_id: selectedLoc.id,
-                        device_id: deviceId
-                      });
+                  try {
+                    if (!isVerified) {
+                      showToast('¡Validación registrada!', `Gracias por confirmar que ${selectedLoc.name} sigue activo.`, selectedLoc.id);
+                      if (!isDemoMode && supabase) {
+                        const { error } = await supabase.from('validations').insert({
+                          location_id: selectedLoc.id,
+                          device_id: deviceId
+                        });
+                        if (error) throw error;
+                      }
+                    } else {
+                      if (!isDemoMode && supabase) {
+                        const { error } = await supabase.from('validations').delete().match({
+                          location_id: selectedLoc.id,
+                          device_id: deviceId
+                        });
+                        if (error) throw error;
+                      }
                     }
-                  } else {
-                    if (!isDemoMode && supabase) {
-                      await supabase.from('validations').delete().match({
-                        location_id: selectedLoc.id,
-                        device_id: deviceId
-                      });
-                    }
+                  } catch (err: any) {
+                    console.error("Error validando:", err);
+                    showToast('Error', 'No se pudo guardar la validación en el servidor.', selectedLoc.id);
+                    // Revert optimistic update
+                    setMockVerifications(prev => ({
+                      ...prev, 
+                      [selectedLoc.id + '_self']: isVerified ? 1 : 0,
+                      [selectedLoc.id]: (prev[selectedLoc.id] || 0) + (isVerified ? 1 : -1)
+                    }));
                   }
                 }}
               >
