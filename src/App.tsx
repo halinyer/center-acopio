@@ -1818,7 +1818,7 @@ function App() {
           <h2 className="profile-sheet-name">{authUser?.user_metadata?.full_name || 'Voluntario'}</h2>
           <p className="profile-sheet-email">{authUser?.email}</p>
           <button className="btn-logout" onClick={() => {
-            signOut();
+            supabase?.auth.signOut();
             setShowProfileSheet(false);
           }}>
             <LogOut size={18} /> Cerrar Sesión
